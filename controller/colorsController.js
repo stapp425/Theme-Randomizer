@@ -15,7 +15,7 @@ async function getFavThemes(req, res) {
 async function getNormalThemes(req, res) {
     try {
         // Gets ALL documents
-        const all = await Color.find({});
+        const all = await Color.find({ favorite: false });
         res.json(all);
     } catch(err) {
         res.status(500).json(`[ERROR]: ${err}`);

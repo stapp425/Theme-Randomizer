@@ -15,6 +15,7 @@
 }
 
 body {
+    position: relative;
     height: 100vh;
     padding: calc(var(--uniform-margin) * 2);
     background-color: white;
@@ -51,6 +52,12 @@ body {
 #next-button:hover {
     cursor: pointer;
     transform: translateX(5px);
+}
+
+#save-theme {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
 }
 
 #prev-bg-colors, #next-bg-colors {

@@ -2,7 +2,7 @@ const Color = require("../model/Color");
 
 async function getAllThemes(req, res) {
     try {
-        const allThemes = await Color.find({});
+        const allThemes = await Color.find();
         if(!allThemes) res.status(404).json("There are no themes present!");
 
         res.json(allThemes)

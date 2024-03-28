@@ -1,5 +1,16 @@
 const Color = require("../model/Color");
 
+async function getAllThemes(req, res) {
+    try {
+        const allThemes = await Color.find({});
+        if(!allThemes) res.status(404).json("There are no themes present!");
+
+        res.json(allThemes)
+    } catch(err) {
+        res.status(500).json(`[ERROR]: ${err}`);
+    }
+}
+
 async function getFavThemes(req, res) {
     try {
         const favThemes = await Color.find({ favorite: true });
@@ -17,6 +28,19 @@ async function getNormalThemes(req, res) {
         // Gets ALL documents
         const all = await Color.find({ favorite: false });
         res.json(all);
+    } catch(err) {
+        res.status(500).json(`[ERROR]: ${err}`);
+    }
+}
+
+// For displaying in the side menu
+async function getLimitedThemes(req, res) {
+    try {
+        const limitedThemes = await Color.find().limit(process.env.MAX_THEMES_DISPLAYED);
+        
+        if(!limitedThemes) return res.status(409).json({ "message": "There are no themes!" })
+        
+        res.json(limitedThemes);
     } catch(err) {
         res.status(500).json(`[ERROR]: ${err}`);
     }
@@ -80,8 +104,10 @@ async function removeTheme(req, res) {
 }
 
 module.exports = {
+    getAllThemes,
     getFavThemes,
     getNormalThemes,
+    getLimitedThemes,
     addNewTheme,
     updateTheme,
     removeTheme

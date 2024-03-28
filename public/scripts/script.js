@@ -7,6 +7,16 @@ const nextArrow = document.getElementById("next-arrow");
 const prevArrow = document.getElementById("prev-arrow");
 const prevButton = document.getElementById("previous-button");
 const nextButton = document.getElementById("next-button");
+const saveThemeButton = document.getElementById("save-button");
+const refreshButton = document.getElementById("refresh-button");
+const menuButton = document.getElementById("menu-button");
+const closeMenuButton = document.getElementById("close-menu-button");
+const savedThemesContainer = document.getElementById("saved-themes-container");
+const fadeBackground = document.getElementById("fade-out-background");
+const savedThemesList = document.getElementById("saved-themes-list");
+const showAllThemesButton = document.getElementById("show-all-themes-button");
+
+const PORT = 3500
 
 // CANNOT BE BELOW 3
 const maxArrayLength = 5;
@@ -39,6 +49,16 @@ function setCooldown() {
 
 addEventListener("resize", setArrows);
 
+menuButton.addEventListener("click", () => {
+    savedThemesContainer.style.display = "flex";
+    fadeBackground.style.display = "block";
+});
+
+closeMenuButton.addEventListener("click", () => {
+    savedThemesContainer.style.display = "none";
+    fadeBackground.style.display = "none";
+});
+
 prevButton.addEventListener("click", () => {
     if (!isOnCooldown) {
         if (currIndex > 1) {
@@ -70,6 +90,119 @@ nextButton.addEventListener("click", () => {
         setCooldown();
     }
 });
+
+saveThemeButton.addEventListener("click", async () => {
+    const themeInput = document.getElementById("name-prompt");
+    const inputValue = themeInput.value;
+    
+    function responseOk() {
+        saveThemeButton.style.backgroundColor = "green";
+        saveThemeButton.style.color = "white";
+        saveThemeButton.innerHTML = `<i class="fa-solid fa-check"></i>`;
+
+        populateSavedColors();
+    }
+
+    function responseNotOk() {
+        saveThemeButton.style.backgroundColor = "red";
+        saveThemeButton.style.color = "white";
+        saveThemeButton.innerHTML = `<i class="fa-solid fa-xmark"></i>`;
+    }
+
+    if (inputValue) {
+        try {
+            const response = await fetch(`http://localhost:${PORT}/api/colors`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    name: inputValue,
+                    colors: toggleBackgrounds[currIndex],
+                    favorite: false
+                })
+            });
+            
+            if (response.ok)
+                responseOk();
+            else 
+                responseNotOk();
+            
+            const data = await response.json();
+            console.log(data);
+        } catch(err) {
+            console.error("[ERROR]: Something went wrong adding the theme color.");
+        }    
+    } else
+        responseNotOk();
+});
+
+refreshButton.addEventListener("click", populateSavedColors);
+
+showAllThemesButton.addEventListener("click", () => {
+    open(`http://localhost:${PORT}/all`, "_blank");
+});
+
+async function populateSavedColors() {
+    // Empty list
+    savedThemesList.innerHTML = "";
+    
+    try {
+        const response = await fetch(`http://localhost:${PORT}/api/colors/limited`, {
+            headers: {
+                "Content-Type": "application/json"
+            }
+        });
+
+        const data = await response.json();
+
+        if (Array.isArray(data) && data.length > 0) {
+            for(let i = 0; i < data.length; i++) {
+                const savedTheme = document.createElement("div");
+                savedTheme.className = "saved-theme";
+
+                const themeName = document.createElement("div");
+                themeName.className = "theme-name";
+                themeName.innerText = data[i].name;
+
+                savedTheme.appendChild(themeName);
+
+                const lineBreak = document.createElement("hr");
+                lineBreak.className = "theme-break";
+                savedTheme.appendChild(lineBreak);
+
+                const savedColorContainer = document.createElement("div");
+                savedColorContainer.className = "saved-color-container";
+
+                for(let j = 0; j < data[i].colors.length; j++) {
+                    const savedColor = document.createElement("button");
+                    savedColor.className = "saved-color";
+                    savedColor.style.backgroundColor = data[i].colors[j];                    
+                    
+                    savedColor.addEventListener("click", () => {
+                        navigator.clipboard.writeText(data[i].colors[j]);
+                    })
+
+                    savedColorContainer.appendChild(savedColor);
+
+                    savedTheme.appendChild(savedColorContainer);
+                }
+
+                savedThemesList.appendChild(savedTheme)                
+            }
+        } else {
+            savedThemesList.innerHTML = `
+                <div id="no-themes-found">
+                    <p style="font-size: 96px; color: rgba(0, 0, 0, 0.5)"><i class="fa-regular fa-face-dizzy"></i></p>
+                    <h1 style="text-align: center; font-size: 26px">No themes found!</h1>
+                    <p><i style="color: rgb(0, 0, 0, 0.75)">Try creating a new one!</i></p>
+                </div>`;
+        }
+            
+    } catch(err) {
+        console.error(`[ERROR]: Colors failed to populate!\nReason: ${err}`);
+    }
+}
 
 function displayValues() {
     const prevContainerChildren = prevContainer.children;
@@ -213,6 +346,8 @@ function createEntry(color = "#000000") {
 initializeColorTheme();
 addToBackgrounds();
 displayValues();
+
+populateSavedColors();
 
 function addToBackgrounds() {
     const toggleLength = toggleBackgrounds.length;

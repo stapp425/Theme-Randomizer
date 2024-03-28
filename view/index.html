@@ -9,6 +9,8 @@
   </head>
 
   <body>
+    <div id="fade-out-background"></div>
+    
     <button id="previous-button">
       <!-- To be implemented by JavaScript -->  
       <div id="prev-bg-colors"></div>
@@ -66,10 +68,53 @@
       
       <div id="next-arrow"></div>
     </button>
+    
+    <button id="menu-button">
+      <i class="fa-solid fa-bars"></i>
+    </button>      
+    
+    <div id="saved-themes-container">
+      <div id="menu-header">
+        <button id="close-menu-button">
+          <i class="fa-solid fa-bars"></i>
+        </button>
+        <h1 style="font-size: 24px">Saved Themes</h1>
+      </div>           
 
-    <button id="save-theme">
-      Save Current Theme
-    </button>
+      <div id="save-box">
+        <h1 style="font-size: 24px">Save Theme</h1>
+        <input type="text" id="name-prompt" placeholder="Enter Theme Name...">
+        <button id="save-button">
+          <span>Save!</span>
+        </button>
+      </div>
+
+      <button id="refresh-button">
+        <i class="fa-solid fa-rotate-right"></i>
+        <span>Refresh</span>
+      </button>
+
+      <hr style="height: 1px; width: 100%; border: 1px dashed rgba(0, 0, 0, 0.5)">
+
+      <div id="saved-themes-list">
+        
+        <!-- To be implemented by JavaScript -->
+        <!-- <div class="saved-theme">
+          <div class="theme-name"></div>
+          <div class="saved-color-container">
+            <button class="saved-color"></button>
+            <button class="saved-color"></button>
+            <button class="saved-color"></button>
+            <button class="saved-color"></button>
+          </div>
+        </div> -->
+      </div>      
+
+      <button id="show-all-themes-button">
+        <span>Show All Themes</span>
+      </button>
+    </div>    
+    
     <script src="/scripts/script.js"></script>
   </body>
 </html>

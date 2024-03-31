@@ -16,9 +16,12 @@ const fadeBackground = document.getElementById("fade-out-background");
 const savedThemesList = document.getElementById("saved-themes-list");
 const showAllThemesButton = document.getElementById("show-all-themes-button");
 const contextMenu = document.getElementById("theme-options");
+const editOptions = document.getElementById("edit-options");
 const favoriteOption = document.getElementById("favorite-option");
+const renameOption = document.getElementById("rename-option");
+const deleteOption = document.getElementById("delete-option");
 
-const PORT = 3500
+const PORT = 3500;
 
 // CANNOT BE BELOW 3
 const maxArrayLength = 5;
@@ -35,18 +38,66 @@ const cooldowns = {
 let inEditMode = false;
 let changesMade = true;
 
+// To point to the theme currently selected in edit mode
+let activeTheme;
+
 setArrows();
+
+function copyThemeToEditButtons(currTheme) {
+    return () => {
+        if(inEditMode) {
+            if(activeTheme) activeTheme.removeChild(editOptions);
+            activeTheme = currTheme;
+
+            const activeThemeChildren = activeTheme.children;
+
+            favoriteOption.addEventListener("click", async () => {
+                const res = await fetch(`http://localhost:${PORT}/api/colors`, {
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    method: "PUT",
+                    body: JSON.stringify({
+                        name: activeThemeChildren[0].innerText,
+                        favorite: activeTheme.backgroundColor === "white" ? true : false
+                    })
+                });
+
+                favoriteOption.innerHTML = `
+                    <div class="icon-holder">
+                        <i class="fa-regular fa-star"></i>
+                    </div>
+                    <span>${activeTheme.backgroundColor === "white" ? "Favorite" : "Unfavorite"}</span>`;
+
+                const data = await res.json();
+                console.log(data);
+                    
+            }, { once: true });
+
+            activeTheme.appendChild(editOptions);
+        }
+        
+    }
+}
 
 function toggleEditMode() {
     if(!inEditMode) {
-        console.log("inEditMode is now true")
+        console.log("inEditMode is now true");
+        editButton.innerHTML = `
+            <i class="fa-regular fa-floppy-disk"></i>
+            <span>Save Changes</span>
+        `;
         inEditMode = true;
 
         const themes = savedThemesList.children;
-        for(entry of themes)
-            entry.style.pointerEvents = "auto";
+        // for(entry of themes)
+        //     entry.style.pointerEvents = "auto";
     } else {
-        console.log("inEditMode is now false")
+        console.log("inEditMode is now false");
+        editButton.innerHTML = `
+            <i class="fa-regular fa-pen-to-square"></i>
+            <span>Enter Edit Mode</span>
+        `;
         inEditMode = false;
         // populateSavedColors();
     }
@@ -208,7 +259,7 @@ async function populateSavedColors() {
             
             if (Array.isArray(data) && data.length > 0) {
                 for(let i = 0; i < data.length; i++) {
-                    const savedTheme = document.createElement("button");
+                    const savedTheme = document.createElement("div");
                     savedTheme.className = "saved-theme";
                     
                     savedTheme.style.backgroundColor = data[i].favorite ? "#ffffc9" : "white";
@@ -239,6 +290,8 @@ async function populateSavedColors() {
 
                         savedTheme.appendChild(savedColorContainer);
                     }
+
+                    savedTheme.addEventListener("click", copyThemeToEditButtons(savedTheme));
 
                     savedThemesList.appendChild(savedTheme);
                 }

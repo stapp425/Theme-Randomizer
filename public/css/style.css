@@ -68,28 +68,23 @@ body {
     font-size: 18px;
 }
 
-#favorite-option, #rename-option {
+#favorite-o, #rename-o {
     background-color: white;
     transition: 0.2s ease-in-out;
 }
 
-#favorite-option:hover, #rename-option:hover {
+#favorite-o:hover, #rename-o:hover {
     cursor: pointer;
     background-color: lightgrey;
 }
 
-#delete-option {
+#delete-o {
     color: white;
     background-color: red;
     transition: 0.2s ease-in-out;
 }
 
-#favorite-option:hover, #rename-option:hover {
-    cursor: pointer;
-    background-color: lightgrey;
-}
-
-#delete-option:hover {
+#delete-o:hover {
     cursor: pointer;
     background-color: darkred;
 }
@@ -159,8 +154,6 @@ body {
     width: 100%;
 }
 
-
-
 #menu-header {
     display: flex;
     flex-direction: row;
@@ -177,6 +170,25 @@ body {
     justify-content: center;
     align-items: center;
     gap: 10px;
+}
+
+#edit-options {
+    position: absolute;
+    border: var(--default-border);
+    background-color: rgba(0, 0, 0, 0.65);
+    display: flex;
+    flex-direction: row;
+    justify-content: space-evenly;
+}
+
+#edit-options > button {
+    /* border-radius: 0; */
+    color: white;
+    background-color: transparent;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 #save-box {
@@ -205,6 +217,10 @@ body {
     border: 2px solid rgba(0, 0, 0, 0.4);
     border-radius: calc(var(--uniform-border-radius) - 3px);
     width: 100%;
+}
+
+.saved-theme:hover {
+    cursor: pointer;
 }
 
 .theme-name {

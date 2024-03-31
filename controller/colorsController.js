@@ -2,7 +2,12 @@ const Color = require("../model/Color");
 
 async function getAllThemes(req, res) {
     try {
-        const allThemes = await Color.find();
+        // Favorites go first
+        const allThemes = await Color.find().sort({
+            favorite: -1,
+            name: 1
+        });
+
         if(!allThemes) res.status(404).json("There are no themes present!");
 
         res.json(allThemes)
@@ -36,7 +41,10 @@ async function getNormalThemes(req, res) {
 // For displaying in the side menu
 async function getLimitedThemes(req, res) {
     try {
-        const limitedThemes = await Color.find().limit(process.env.MAX_THEMES_DISPLAYED);
+        const limitedThemes = await Color.find().sort({
+            favorite: -1,
+            name: 1
+        }).limit(process.env.MAX_THEMES_DISPLAYED);
         
         if(!limitedThemes) return res.status(409).json({ "message": "There are no themes!" })
         

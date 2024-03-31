@@ -11,6 +11,29 @@
   <body>
     <div id="fade-out-background"></div>
     
+    <ul id="theme-options">
+      <button id="favorite-option">
+        <div class="icon-holder">
+          <i class="fa-regular fa-star"></i>
+        </div>
+        <span>Favorite</span>
+      </button>
+
+      <button id="rename-option">
+        <div class="icon-holder">
+          <i class="fa-solid fa-pen"></i>
+        </div>
+        <span>Rename</span>
+      </button>
+
+      <button id="delete-option">
+        <div class="icon-holder">
+          <i class="fa-solid fa-trash"></i>
+        </div>
+        <span>Delete</span>
+      </button>
+    </ul>
+
     <button id="previous-button">
       <!-- To be implemented by JavaScript -->  
       <div id="prev-bg-colors"></div>
@@ -74,6 +97,7 @@
     </button>      
     
     <div id="saved-themes-container">
+      <!-- <img id="saved-themes-background" src="/img/savedThemesBackground.png"> -->
       <div id="menu-header">
         <button id="close-menu-button">
           <i class="fa-solid fa-bars"></i>
@@ -87,14 +111,14 @@
         <button id="save-button">
           <span>Save!</span>
         </button>
-      </div>
-
-      <button id="refresh-button">
-        <i class="fa-solid fa-rotate-right"></i>
-        <span>Refresh</span>
-      </button>
+      </div>      
 
       <hr style="height: 1px; width: 100%; border: 1px dashed rgba(0, 0, 0, 0.5)">
+
+      <button id="edit-button">
+        <i class="fa-regular fa-pen-to-square"></i>
+        <span>Enter Edit Mode</span>
+      </button>
 
       <div id="saved-themes-list">
         
@@ -113,7 +137,9 @@
       <button id="show-all-themes-button">
         <span>Show All Themes</span>
       </button>
-    </div>    
+
+      
+    </div>
     
     <script src="/scripts/script.js"></script>
   </body>

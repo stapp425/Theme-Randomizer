@@ -8,13 +8,15 @@ const prevArrow = document.getElementById("prev-arrow");
 const prevButton = document.getElementById("previous-button");
 const nextButton = document.getElementById("next-button");
 const saveThemeButton = document.getElementById("save-button");
-const refreshButton = document.getElementById("refresh-button");
+const editButton = document.getElementById("edit-button");
 const menuButton = document.getElementById("menu-button");
 const closeMenuButton = document.getElementById("close-menu-button");
 const savedThemesContainer = document.getElementById("saved-themes-container");
 const fadeBackground = document.getElementById("fade-out-background");
 const savedThemesList = document.getElementById("saved-themes-list");
 const showAllThemesButton = document.getElementById("show-all-themes-button");
+const contextMenu = document.getElementById("theme-options");
+const favoriteOption = document.getElementById("favorite-option");
 
 const PORT = 3500
 
@@ -24,10 +26,31 @@ const toggleBackgrounds = [];
 let previewBuffer = [];
 let currIndex = 1;
 
-const cooldown = 750;
-let isOnCooldown = false;
+const cooldowns = {
+    theme: false,
+    button: false,
+    refresh: false
+}
+
+let inEditMode = false;
+let changesMade = true;
 
 setArrows();
+
+function toggleEditMode() {
+    if(!inEditMode) {
+        console.log("inEditMode is now true")
+        inEditMode = true;
+
+        const themes = savedThemesList.children;
+        for(entry of themes)
+            entry.style.pointerEvents = "auto";
+    } else {
+        console.log("inEditMode is now false")
+        inEditMode = false;
+        // populateSavedColors();
+    }
+}
 
 function setArrows() {
     if (matchMedia("(max-width: 1049px)").matches) {
@@ -39,15 +62,15 @@ function setArrows() {
     }  
 }
 
-function setCooldown() {
-    isOnCooldown = true;
-
-    setTimeout(() => {
-        isOnCooldown = false;
-    }, cooldown)
-}
+editButton.addEventListener("click", toggleEditMode);
 
 addEventListener("resize", setArrows);
+
+// Periodically refreshes the list IF there are changes
+setInterval(() => {
+    populateSavedColors();
+    changesMade = false;
+}, 20 * 1000);
 
 menuButton.addEventListener("click", () => {
     savedThemesContainer.style.display = "flex";
@@ -60,7 +83,7 @@ closeMenuButton.addEventListener("click", () => {
 });
 
 prevButton.addEventListener("click", () => {
-    if (!isOnCooldown) {
+    if (!cooldowns.theme) {
         if (currIndex > 1) {
             currIndex--;        
     
@@ -68,12 +91,16 @@ prevButton.addEventListener("click", () => {
             updateCurrentValues();
         }
 
-        setCooldown();
+        cooldowns.theme = true;
+
+        setTimeout(() => {
+            cooldowns.theme = false;
+        }, 750);
     }
 });
 
 nextButton.addEventListener("click", () => {
-    if (!isOnCooldown) {
+    if (!cooldowns.theme) {
         currIndex++;
 
         const toggleLength = toggleBackgrounds.length;
@@ -87,7 +114,11 @@ nextButton.addEventListener("click", () => {
         displayValues();
         updateCurrentValues();
 
-        setCooldown();
+        cooldowns.theme = true;
+
+        setTimeout(() => {
+            cooldowns.theme = false;
+        }, 750);
     }
 });
 
@@ -95,11 +126,22 @@ saveThemeButton.addEventListener("click", async () => {
     const themeInput = document.getElementById("name-prompt");
     const inputValue = themeInput.value;
     
+    function revertToDefault() {
+        setTimeout(() => {
+            saveThemeButton.style.backgroundColor = "lightgrey";
+            saveThemeButton.innerText = "Save!";
+            saveThemeButton.style.color = "black";
+        }, 5000);
+    }
+    
     function responseOk() {
         saveThemeButton.style.backgroundColor = "green";
         saveThemeButton.style.color = "white";
         saveThemeButton.innerHTML = `<i class="fa-solid fa-check"></i>`;
 
+        revertToDefault();
+
+        changesMade = true;
         populateSavedColors();
     }
 
@@ -107,9 +149,11 @@ saveThemeButton.addEventListener("click", async () => {
         saveThemeButton.style.backgroundColor = "red";
         saveThemeButton.style.color = "white";
         saveThemeButton.innerHTML = `<i class="fa-solid fa-xmark"></i>`;
+
+        revertToDefault();
     }
 
-    if (inputValue) {
+    if (inputValue && !cooldowns.button) {
         try {
             const response = await fetch(`http://localhost:${PORT}/api/colors`, {
                 method: "POST",
@@ -131,77 +175,98 @@ saveThemeButton.addEventListener("click", async () => {
             const data = await response.json();
             console.log(data);
         } catch(err) {
-            console.error("[ERROR]: Something went wrong adding the theme color.");
+            console.error("[ERROR]: Somethin went wrong adding the theme color.");
         }    
     } else
         responseNotOk();
-});
 
-refreshButton.addEventListener("click", populateSavedColors);
+        cooldowns.button = true;
+
+        setTimeout(() => {
+            cooldowns.button = false;
+        }, 6000);
+});
 
 showAllThemesButton.addEventListener("click", () => {
     open(`http://localhost:${PORT}/all`, "_blank");
 });
 
 async function populateSavedColors() {
-    // Empty list
-    savedThemesList.innerHTML = "";
-    
-    try {
-        const response = await fetch(`http://localhost:${PORT}/api/colors/limited`, {
-            headers: {
-                "Content-Type": "application/json"
-            }
-        });
-
-        const data = await response.json();
-
-        if (Array.isArray(data) && data.length > 0) {
-            for(let i = 0; i < data.length; i++) {
-                const savedTheme = document.createElement("div");
-                savedTheme.className = "saved-theme";
-
-                const themeName = document.createElement("div");
-                themeName.className = "theme-name";
-                themeName.innerText = data[i].name;
-
-                savedTheme.appendChild(themeName);
-
-                const lineBreak = document.createElement("hr");
-                lineBreak.className = "theme-break";
-                savedTheme.appendChild(lineBreak);
-
-                const savedColorContainer = document.createElement("div");
-                savedColorContainer.className = "saved-color-container";
-
-                for(let j = 0; j < data[i].colors.length; j++) {
-                    const savedColor = document.createElement("button");
-                    savedColor.className = "saved-color";
-                    savedColor.style.backgroundColor = data[i].colors[j];                    
-                    
-                    savedColor.addEventListener("click", () => {
-                        navigator.clipboard.writeText(data[i].colors[j]);
-                    })
-
-                    savedColorContainer.appendChild(savedColor);
-
-                    savedTheme.appendChild(savedColorContainer);
+    console.log("color update called")
+    if(!cooldowns.refresh && changesMade) {
+        // Empty list
+        savedThemesList.innerHTML = "";
+        
+        try {
+            const response = await fetch(`http://localhost:${PORT}/api/colors/limited`, {
+                headers: {
+                    "Content-Type": "application/json"
                 }
+            });
 
-                savedThemesList.appendChild(savedTheme)                
+            const data = await response.json();
+            
+            if (Array.isArray(data) && data.length > 0) {
+                for(let i = 0; i < data.length; i++) {
+                    const savedTheme = document.createElement("button");
+                    savedTheme.className = "saved-theme";
+                    
+                    savedTheme.style.backgroundColor = data[i].favorite ? "#ffffc9" : "white";
+
+                    const themeName = document.createElement("div");
+                    themeName.className = "theme-name";
+                    themeName.innerText = data[i].name;
+
+                    savedTheme.appendChild(themeName);
+
+                    const lineBreak = document.createElement("hr");
+                    lineBreak.className = "theme-break";
+                    savedTheme.appendChild(lineBreak);
+
+                    const savedColorContainer = document.createElement("div");
+                    savedColorContainer.className = "saved-color-container";                
+
+                    for(let j = 0; j < data[i].colors.length; j++) {
+                        const savedColor = document.createElement("button");
+                        savedColor.className = "saved-color";
+                        savedColor.style.backgroundColor = data[i].colors[j];                    
+                        
+                        savedColor.addEventListener("click", () => {
+                            navigator.clipboard.writeText(data[i].colors[j]);
+                        });
+
+                        savedColorContainer.appendChild(savedColor);
+
+                        savedTheme.appendChild(savedColorContainer);
+                    }
+
+                    savedThemesList.appendChild(savedTheme);
+                }
+            } else {
+                savedThemesList.innerHTML = `
+                    <div id="no-themes-found">
+                        <p style="font-size: 96px; color: rgba(0, 0, 0, 0.5)"><i class="fa-regular fa-face-frown"></i></p>
+                        <h1 style="text-align: center; font-size: 26px">No themes found!</h1>
+                        <p><i style="color: rgb(0, 0, 0, 0.75)">Try creating a new one!</i></p>
+                    </div>`;
             }
-        } else {
+                
+        } catch(err) {
+            console.error(`[ERROR]: Colors failed to populate!\nReason: ${err}`);
             savedThemesList.innerHTML = `
-                <div id="no-themes-found">
+                <div id="server-error">
                     <p style="font-size: 96px; color: rgba(0, 0, 0, 0.5)"><i class="fa-regular fa-face-dizzy"></i></p>
-                    <h1 style="text-align: center; font-size: 26px">No themes found!</h1>
-                    <p><i style="color: rgb(0, 0, 0, 0.75)">Try creating a new one!</i></p>
+                    <h1 style="text-align: center; font-size: 26px">Server Offline!</h1>
+                    <p><i style="color: rgb(0, 0, 0, 0.75)">Try again later.</i></p>
                 </div>`;
         }
-            
-    } catch(err) {
-        console.error(`[ERROR]: Colors failed to populate!\nReason: ${err}`);
-    }
+
+        cooldowns.refresh = true;
+
+        setTimeout(() => {
+            cooldowns.refresh = false;
+        }, 2000);
+    }   
 }
 
 function displayValues() {

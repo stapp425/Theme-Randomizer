@@ -11,7 +11,7 @@
   <body>
     <div id="fade-out-background"></div>
     
-    <ul id="theme-options">
+    <!-- <ul id="theme-options">
       <button id="favorite-o">
         <div class="icon-holder">
           <i class="fa-regular fa-star"></i>
@@ -32,7 +32,7 @@
         </div>
         <span>Delete</span>
       </button>
-    </ul>
+    </ul> -->
 
     <button id="previous-button">
       <!-- To be implemented by JavaScript -->  
@@ -42,49 +42,64 @@
     </button>
 
     
-    <!-- <h1 style="position: absolute; top: 5px">Current Width: <span id="screen-width-text"></span></h1> -->
-    <div id="container">
-      <div id="color-theme">
-        <div id="pane">
-          <div class="pane-entry">
+    <div id="current-theme-container">
+      <div id="preview-theme-header">
+        <h1 id="preview-theme-name">Theme Name</h1>
+        <p id="preview-mode-text"><i>Preview Mode</i></p>
+      </div>
+
+
+      <!-- <h1 style="position: absolute; top: 5px">Current Width: <span id="screen-width-text"></span></h1> -->
+      <div id="container">
+        <div id="color-theme">
+          <div id="pane">
+            <div class="pane-entry">
+            </div>
+          </div>
+    
+          <div id="list">
+            <div class="list-entry"></div>
+            <div class="list-entry"></div>
+            <div class="list-entry"></div>
           </div>
         </div>
-  
-        <div id="list">
-          <div class="list-entry"></div>
-          <div class="list-entry"></div>
-          <div class="list-entry"></div>
+        
+        <div id="info-container">
+          <div id="color-text-container">
+            <h1 id="color-values-text">Color Values</h1>
+            
+            <div id="color-selector">
+              <!-- To be implemented by JavaScript -->
+            </div>
+          </div>
+
+          <div id="socials">
+            <div class="social-entry">
+              <a href="https://mail.google.com" class="social-icon" target="_blank"><i class="fa-brands fa-google"></i></a>
+              <h1 class="username"><i>stapp425@gmail.com</i></h1>
+            </div>
+            
+            <div class="social-entry">
+              <a href="https://github.com/stapp425" class="social-icon" target="_blank"><i class="fa-brands fa-github"></i></a>
+              <h1 class="username"><i>stapp425</i></h1>
+            </div>
+            
+            <div class="social-entry">
+              <a href="https://www.linkedin.com/in/shawn-tapp-38a5582a2/" class="social-icon" target="_blank"><i class="fa-brands fa-linkedin"></i></a>
+              <h1 class="username"><i>Shawn Tapp</i></h1>
+            </div>
+          </div>
         </div>
       </div>
       
-      <div id="info-container">
-        <div id="color-text-container">
-          <h1 id="color-values-text">Color Values</h1>
-          
-          <div id="color-selector">
-            <!-- To be implemented by JavaScript -->
-          </div>
-        </div>
+      <button id="preview-button">
+        Exit Preview
+      </button>
 
-        <div id="socials">
-          <div class="social-entry">
-            <a href="https://mail.google.com" class="social-icon" target="_blank"><i class="fa-brands fa-google"></i></a>
-            <h1 class="username"><i>stapp425@gmail.com</i></h1>
-          </div>
-          
-          <div class="social-entry">
-            <a href="https://github.com/stapp425" class="social-icon" target="_blank"><i class="fa-brands fa-github"></i></a>
-            <h1 class="username"><i>stapp425</i></h1>
-          </div>
-          
-          <div class="social-entry">
-            <a href="https://www.linkedin.com/in/shawn-tapp-38a5582a2/" class="social-icon" target="_blank"><i class="fa-brands fa-linkedin"></i></a>
-            <h1 class="username"><i>Shawn Tapp</i></h1>
-          </div>
-        </div>
-      </div>
+
     </div>
-
+    
+    
     <button id="next-button">
       <!-- To be implemented by JavaScript -->
       <div id="next-bg-colors"></div>
@@ -102,7 +117,7 @@
         <button id="close-menu-button">
           <i class="fa-solid fa-bars"></i>
         </button>
-        <h1 style="font-size: 24px">Saved Themes</h1>
+        <h1 style="font-size: 26px">Saved Themes</h1>        
       </div>           
 
       <div id="save-box">
@@ -145,10 +160,10 @@
         </button>
       </div>
 
-      <button id="edit-button">
+      <!-- <button id="edit-button">
         <i class="fa-regular fa-pen-to-square"></i>
         <span>Enter Edit Mode</span>
-      </button>
+      </button> -->
 
       <div id="saved-themes-list">
         

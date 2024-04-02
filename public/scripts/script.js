@@ -16,10 +16,9 @@ const fadeBackground = document.getElementById("fade-out-background");
 const savedThemesList = document.getElementById("saved-themes-list");
 const showAllThemesButton = document.getElementById("show-all-themes-button");
 const contextMenu = document.getElementById("theme-options");
-const editOptions = document.getElementById("edit-options");
-const favoriteOption = document.getElementById("favorite-option");
-const renameOption = document.getElementById("rename-option");
-const deleteOption = document.getElementById("delete-option");
+const previewThemeHeader = document.getElementById("preview-theme-header");
+const previewButton = document.getElementById("preview-button");
+const themeContainer = document.getElementById("container");
 
 const PORT = 3500;
 
@@ -35,73 +34,10 @@ const cooldowns = {
     refresh: false
 }
 
-let inEditMode = false;
 let changesMade = true;
-
-// To point to the theme currently selected in edit mode
-let activeTheme;
+let inPreviewMode = false;
 
 setArrows();
-
-function copyThemeToEditButtons(currTheme) {
-    return () => {
-        if(inEditMode) {
-            if(activeTheme) activeTheme.removeChild(editOptions);
-            activeTheme = currTheme;
-
-            const activeThemeChildren = activeTheme.children;
-
-            favoriteOption.addEventListener("click", async () => {
-                const res = await fetch(`http://localhost:${PORT}/api/colors`, {
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    method: "PUT",
-                    body: JSON.stringify({
-                        name: activeThemeChildren[0].innerText,
-                        favorite: activeTheme.backgroundColor === "white" ? true : false
-                    })
-                });
-
-                favoriteOption.innerHTML = `
-                    <div class="icon-holder">
-                        <i class="fa-regular fa-star"></i>
-                    </div>
-                    <span>${activeTheme.backgroundColor === "white" ? "Favorite" : "Unfavorite"}</span>`;
-
-                const data = await res.json();
-                console.log(data);
-                    
-            }, { once: true });
-
-            activeTheme.appendChild(editOptions);
-        }
-        
-    }
-}
-
-function toggleEditMode() {
-    if(!inEditMode) {
-        console.log("inEditMode is now true");
-        editButton.innerHTML = `
-            <i class="fa-regular fa-floppy-disk"></i>
-            <span>Save Changes</span>
-        `;
-        inEditMode = true;
-
-        const themes = savedThemesList.children;
-        // for(entry of themes)
-        //     entry.style.pointerEvents = "auto";
-    } else {
-        console.log("inEditMode is now false");
-        editButton.innerHTML = `
-            <i class="fa-regular fa-pen-to-square"></i>
-            <span>Enter Edit Mode</span>
-        `;
-        inEditMode = false;
-        // populateSavedColors();
-    }
-}
 
 function setArrows() {
     if (matchMedia("(max-width: 1049px)").matches) {
@@ -113,8 +49,6 @@ function setArrows() {
     }  
 }
 
-editButton.addEventListener("click", toggleEditMode);
-
 addEventListener("resize", setArrows);
 
 // Periodically refreshes the list IF there are changes
@@ -123,15 +57,83 @@ setInterval(() => {
     changesMade = false;
 }, 20 * 1000);
 
-menuButton.addEventListener("click", () => {
+function togglePreviewMode(savedTheme) {
+    return () => {
+        const colorSelector = document.getElementById("color-selector");
+
+        if(!inPreviewMode) {
+            inPreviewMode = true;
+    
+            closeMenu();
+
+            const savedThemeComponents = savedTheme?.children;
+            
+            document.body.style.backgroundImage = `url("/img/darkMainTheme.png")`;
+            menuButton.style.display = "none";
+            previewThemeHeader.style.display = "flex";
+            previewThemeHeader.children[0].innerText = savedThemeComponents ? savedThemeComponents[0].innerText : "Theme Name";
+            previewButton.style.display = "block";
+            prevButton.style.display = "none";
+            nextButton.style.display = "none";
+
+            if(savedTheme) {
+                const savedThemeColors = savedThemeComponents[2].children;
+
+                for(let i = 0; i < paneEntryList.length; i++)
+                paneEntryList[i].style.backgroundColor = savedThemeColors[i].style.backgroundColor;
+
+                for(let i = 0; i < listEntryList.length; i++)
+                listEntryList[i].style.backgroundColor = savedThemeColors[i + 1].style.backgroundColor;
+            
+                for(const colorEntry of colorSelector.children) {
+                    const colorOptions = colorEntry.children;
+                    
+                    
+                    for(let i = 0; i < colorOptions.length; i++) {
+                        colorOptions[0].style.backgroundColor = savedThemeComponents[i].style.backgroundColor;
+
+                        // TODO
+                    }
+                }
+            
+            }
+            
+        } else {
+            inPreviewMode = false;
+    
+            openMenu();
+            
+            document.body.style.backgroundImage = `url("/img/lightMainTheme.png")`;
+            menuButton.style.display = "block";
+            previewThemeHeader.style.display = "none";
+            previewButton.style.display = "none";
+            prevButton.style.display = "flex";
+            nextButton.style.display = "flex";
+
+            for(let i = 0; i < paneEntryList.length; i++)
+                paneEntryList[i].style.backgroundColor = toggleBackgrounds[currIndex][i];
+
+            for(let i = 0; i < listEntryList.length; i++)
+                listEntryList[i].style.backgroundColor = toggleBackgrounds[currIndex][i + 1];
+        }
+    }
+}
+
+function openMenu() {
     savedThemesContainer.style.display = "flex";
     fadeBackground.style.display = "block";
-});
+}
 
-closeMenuButton.addEventListener("click", () => {
+function closeMenu() {
     savedThemesContainer.style.display = "none";
     fadeBackground.style.display = "none";
-});
+}
+
+previewButton.addEventListener("click", togglePreviewMode());
+
+menuButton.addEventListener("click", openMenu);
+
+closeMenuButton.addEventListener("click", closeMenu);
 
 prevButton.addEventListener("click", () => {
     if (!cooldowns.theme) {
@@ -245,6 +247,7 @@ showAllThemesButton.addEventListener("click", () => {
 async function populateSavedColors() {
     console.log("color update called")
     if(!cooldowns.refresh && changesMade) {
+        
         // Empty list
         savedThemesList.innerHTML = "";
         
@@ -259,10 +262,10 @@ async function populateSavedColors() {
             
             if (Array.isArray(data) && data.length > 0) {
                 for(let i = 0; i < data.length; i++) {
-                    const savedTheme = document.createElement("div");
+                    const savedTheme = document.createElement("button");
                     savedTheme.className = "saved-theme";
                     
-                    savedTheme.style.backgroundColor = data[i].favorite ? "#ffffc9" : "white";
+                    savedTheme.style.backgroundColor = data[i].favorite ? "#ffffc8" : "white";
 
                     const themeName = document.createElement("div");
                     themeName.className = "theme-name";
@@ -275,23 +278,19 @@ async function populateSavedColors() {
                     savedTheme.appendChild(lineBreak);
 
                     const savedColorContainer = document.createElement("div");
-                    savedColorContainer.className = "saved-color-container";                
+                    savedColorContainer.className = "saved-color-container";
 
                     for(let j = 0; j < data[i].colors.length; j++) {
-                        const savedColor = document.createElement("button");
+                        const savedColor = document.createElement("div");
                         savedColor.className = "saved-color";
-                        savedColor.style.backgroundColor = data[i].colors[j];                    
-                        
-                        savedColor.addEventListener("click", () => {
-                            navigator.clipboard.writeText(data[i].colors[j]);
-                        });
+                        savedColor.style.backgroundColor = data[i].colors[j];
 
                         savedColorContainer.appendChild(savedColor);
 
                         savedTheme.appendChild(savedColorContainer);
                     }
 
-                    savedTheme.addEventListener("click", copyThemeToEditButtons(savedTheme));
+                    savedTheme.addEventListener("click", togglePreviewMode(savedTheme));
 
                     savedThemesList.appendChild(savedTheme);
                 }
@@ -373,7 +372,7 @@ function previewNextTheme() {
     const nextColors = document.getElementsByClassName("next-color");
     
     if (previewBuffer.length == 0) {
-        for (color of nextColors) {
+        for (const color of nextColors) {
             const rand = generateRandomHex();
             color.style.backgroundColor = rand;
             previewBuffer.push(rand);
@@ -405,10 +404,10 @@ function initializeColorTheme() {
         nextContainer.appendChild(nextChild);
     }
 
-    for (paneEntry of paneEntryList)
+    for (const paneEntry of paneEntryList)
         createThemeEntry(paneEntry)
 
-    for (listEntry of listEntryList)
+    for (const listEntry of listEntryList)
         createThemeEntry(listEntry)
 }
 

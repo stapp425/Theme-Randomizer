@@ -26,6 +26,7 @@ const PORT = 3500;
 const maxArrayLength = 5;
 const toggleBackgrounds = [];
 let previewBuffer = [];
+let currentThemeBuffer = [];
 let currIndex = 1;
 
 const cooldowns = {
@@ -79,20 +80,27 @@ function togglePreviewMode(savedTheme) {
             if(savedTheme) {
                 const savedThemeColors = savedThemeComponents[2].children;
 
+                // Save current theme color values before switching to preview mode
+                for(const colorTextValue of colorSelector.children)
+                    currentThemeBuffer.push(colorTextValue.children[1].innerText);
+
                 for(let i = 0; i < paneEntryList.length; i++)
-                paneEntryList[i].style.backgroundColor = savedThemeColors[i].style.backgroundColor;
+                    paneEntryList[i].style.backgroundColor = savedThemeColors[i].style.backgroundColor;
 
                 for(let i = 0; i < listEntryList.length; i++)
-                listEntryList[i].style.backgroundColor = savedThemeColors[i + 1].style.backgroundColor;
-            
+                    listEntryList[i].style.backgroundColor = savedThemeColors[i + 1].style.backgroundColor;                
+                
+                // Loading preview color values
                 for(const colorEntry of colorSelector.children) {
                     const colorOptions = colorEntry.children;
                     
-                    
                     for(let i = 0; i < colorOptions.length; i++) {
-                        colorOptions[0].style.backgroundColor = savedThemeComponents[i].style.backgroundColor;
+                        colorOptions[0].style.backgroundColor = currentThemeBuffer[i];
 
                         // TODO
+                        colorOptions[1].innerText = currentThemeBuffer[i];
+
+                        
                     }
                 }
             

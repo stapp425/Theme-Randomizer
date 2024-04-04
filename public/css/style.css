@@ -330,8 +330,8 @@ body {
 }
 
 #preview-theme-header {
-    width: 40%;
-    max-width: 60%;
+    min-width: 40%;
+    max-width: 75%;
     border: none;
     border-radius: var(--uniform-border-radius);
     padding: 15px;
@@ -698,4 +698,3 @@ body {
         display: none;
     }
 }
-

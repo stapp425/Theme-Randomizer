@@ -1,6 +1,6 @@
 const paneEntryList = document.getElementsByClassName("pane-entry");
 const listEntryList = document.getElementsByClassName("list-entry");
-const colorSelector = document.getElementById("color-selector");
+let colorSelector = document.getElementById("color-selector");
 const prevContainer = document.getElementById("prev-bg-colors");
 const nextContainer = document.getElementById("next-bg-colors");
 const nextArrow = document.getElementById("next-arrow");
@@ -18,7 +18,7 @@ const showAllThemesButton = document.getElementById("show-all-themes-button");
 const contextMenu = document.getElementById("theme-options");
 const previewThemeHeader = document.getElementById("preview-theme-header");
 const previewButton = document.getElementById("preview-button");
-const themeContainer = document.getElementById("container");
+let themeContainer = document.getElementById("container");
 
 const PORT = 3500;
 
@@ -35,7 +35,7 @@ const cooldowns = {
     refresh: false
 }
 
-let changesMade = true;
+
 let inPreviewMode = false;
 
 setArrows();
@@ -55,12 +55,42 @@ addEventListener("resize", setArrows);
 // Periodically refreshes the list IF there are changes
 setInterval(() => {
     populateSavedColors();
-    changesMade = false;
-}, 20 * 1000);
+
+}, 30 * 1000);
+
+function convertColorValues(colorValue) {
+    let result;
+
+    if(colorValue.charAt(0) === "#") {
+        const hexValue = colorValue.substring(1);
+        const r = parseInt(hexValue.substring(0, 2), 16);
+        const g = parseInt(hexValue.substring(2, 4), 16);
+        const b = parseInt(hexValue.substring(4, 6), 16);
+
+        result = `rgb(${r}, ${g}, ${b})`;
+    } else {
+        const rgbValues = colorValue.match(/[0-9]{1,3}/g);
+
+        const hexValues = rgbValues.map(element => {
+            const hex = parseInt(element).toString(16);
+            return hex.length === 1 ? "0" + hex : hex;
+        });
+
+        result = `#${hexValues[0]}${hexValues[1]}${hexValues[2]}`;
+    }
+
+    return result;
+}
 
 function togglePreviewMode(savedTheme) {
     return () => {
-        const colorSelector = document.getElementById("color-selector");
+        colorSelector = document.getElementById("color-selector");
+        const colorEntries = document.getElementsByClassName("color-entry");
+        const colorBackgrounds = document.getElementsByClassName("background");
+        const colorValues = document.getElementsByClassName("color-values");
+        const copyColorButtons = document.getElementsByClassName("copy");
+        const isFavorite = savedTheme?.style.backgroundColor === convertColorValues("#ffffc8");
+        themeContainer = document.getElementById("container");
 
         if(!inPreviewMode) {
             inPreviewMode = true;
@@ -68,6 +98,7 @@ function togglePreviewMode(savedTheme) {
             closeMenu();
 
             const savedThemeComponents = savedTheme?.children;
+            const savedThemeColors = savedThemeComponents[2].children;
             
             document.body.style.backgroundImage = `url("/img/darkMainTheme.png")`;
             menuButton.style.display = "none";
@@ -78,32 +109,34 @@ function togglePreviewMode(savedTheme) {
             nextButton.style.display = "none";
 
             if(savedTheme) {
-                const savedThemeColors = savedThemeComponents[2].children;
+                if(isFavorite) {
+                    themeContainer.style.backgroundColor = "#ffffc8";
+                    previewThemeHeader.style.backgroundColor = "#ffffc8";
 
-                // Save current theme color values before switching to preview mode
-                for(const colorTextValue of colorSelector.children)
-                    currentThemeBuffer.push(colorTextValue.children[1].innerText);
+                    for(const colorEntry of colorEntries)
+                        colorEntry.style.background = "#ffffc8";
+                }
 
                 for(let i = 0; i < paneEntryList.length; i++)
                     paneEntryList[i].style.backgroundColor = savedThemeColors[i].style.backgroundColor;
 
                 for(let i = 0; i < listEntryList.length; i++)
-                    listEntryList[i].style.backgroundColor = savedThemeColors[i + 1].style.backgroundColor;                
+                    listEntryList[i].style.backgroundColor = savedThemeColors[i + 1].style.backgroundColor;
                 
-                // Loading preview color values
-                for(const colorEntry of colorSelector.children) {
-                    const colorOptions = colorEntry.children;
-                    
-                    for(let i = 0; i < colorOptions.length; i++) {
-                        colorOptions[0].style.backgroundColor = currentThemeBuffer[i];
+                for(let i = 0; i < savedThemeColors.length; i++) {
+                    colorBackgrounds[i].style.backgroundColor = savedThemeColors[i].style.backgroundColor;
 
-                        // TODO
-                        colorOptions[1].innerText = currentThemeBuffer[i];
+                    colorValues[i].innerText = convertColorValues(savedThemeColors[i].style.backgroundColor);
 
-                        
-                    }
-                }
-            
+                    copyColorButtons[i].replaceWith(copyColorButtons[i].cloneNode(true));
+
+                    copyColorButtons[i].addEventListener("click", () => {
+                        colorSelector.children[i].style.backgroundColor = "darkgrey";
+                        copyColorButtons[i].style.backgroundColor = "grey";
+                        copyColorButtons[i].innerHTML = `<i class="fa-solid fa-check"></i>`;
+                        navigator.clipboard.writeText(colorValues[i].innerText);
+                    });
+                }                
             }
             
         } else {
@@ -118,11 +151,37 @@ function togglePreviewMode(savedTheme) {
             prevButton.style.display = "flex";
             nextButton.style.display = "flex";
 
+            themeContainer.style.backgroundColor = "rgba(255, 255, 255, 0.9)";
+            previewThemeHeader.style.backgroundColor = "white";
+            
+            for(const colorEntry of colorEntries)
+                colorEntry.style.background = "white";
+
             for(let i = 0; i < paneEntryList.length; i++)
                 paneEntryList[i].style.backgroundColor = toggleBackgrounds[currIndex][i];
 
             for(let i = 0; i < listEntryList.length; i++)
                 listEntryList[i].style.backgroundColor = toggleBackgrounds[currIndex][i + 1];
+
+            for(let i = 0; i < colorSelector.children.length; i++) {
+                // Set the background color of the color to corresponding saved theme value
+                colorBackgrounds[i].style.backgroundColor = toggleBackgrounds[currIndex][i];
+                
+                colorValues[i].innerText = toggleBackgrounds[currIndex][i];
+
+                // Update the copy text button to match the saved theme hex value
+                // Delete ALL event listeners
+                copyColorButtons[i].innerHTML = `<i class="fa-regular fa-copy"></i>`;
+                copyColorButtons[i].style.backgroundColor = "grey";
+                
+                copyColorButtons[i].replaceWith(copyColorButtons[i].cloneNode(true));
+                copyColorButtons[i].addEventListener("click", () => {
+                    colorSelector.children[i].style.backgroundColor = "darkgrey";
+                    copyColorButtons[i].style.backgroundColor = "grey";
+                    copyColorButtons[i].innerHTML = `<i class="fa-solid fa-check"></i>`;
+                    navigator.clipboard.writeText(colorValues[i].innerText);
+                });
+            }
         }
     }
 }
@@ -202,7 +261,7 @@ saveThemeButton.addEventListener("click", async () => {
 
         revertToDefault();
 
-        changesMade = true;
+
         populateSavedColors();
     }
 
@@ -254,7 +313,7 @@ showAllThemesButton.addEventListener("click", () => {
 
 async function populateSavedColors() {
     console.log("color update called")
-    if(!cooldowns.refresh && changesMade) {
+    if(!cooldowns.refresh) {
         
         // Empty list
         savedThemesList.innerHTML = "";
@@ -441,28 +500,22 @@ function createEntry(color = "#000000") {
     newEntry.className = "color-entry";
 
     newEntry.innerHTML = `
-        <div class="background"></div>        
-
+        <div class="background" style="background-color: ${color}"></div>        
+        
         <div class="color-values">
-            <p class="Hex-Value">Random Hex Value</p>
+            ${color}
         </div>
 
         <button class="copy"><i class="fa-regular fa-copy"></i></button>
     `;
 
     const newEntryChildren = newEntry.children;
-    const copiedBackground = newEntryChildren[0];
-    const copiedHexVal = newEntryChildren[1].children[0];
     const copyButton = newEntryChildren[2];
-    
-    copiedBackground.style.backgroundColor = color;
-    copiedHexVal.innerText = color;
-    copyButton.innerHTML = `<i class="fa-regular fa-copy"></i>`;
 
     copyButton.addEventListener("click", () => {
         newEntry.style.backgroundColor = "grey";
         copyButton.innerHTML = `<i class="fa-solid fa-check"></i>`;
-        navigator.clipboard.writeText(copiedHexVal.innerText);
+        navigator.clipboard.writeText(color);
     });
 
     return newEntry;

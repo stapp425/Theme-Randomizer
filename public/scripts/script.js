@@ -35,6 +35,11 @@ const cooldowns = {
     refresh: false
 }
 
+const colors = {
+    favorite: "#ffffc8",
+    normal: "white",
+    container: "rgba(255, 255, 255, 0.9)"
+}
 
 let inPreviewMode = false;
 
@@ -69,20 +74,47 @@ function convertColorValues(colorValue) {
 
         result = `rgb(${r}, ${g}, ${b})`;
     } else {
-        const rgbValues = colorValue.match(/[0-9]{1,3}/g);
+        let colorValues = colorValue.match(/[0-9]{1,3}/g);
 
-        const hexValues = rgbValues.map(element => {
+        colorValues = colorValues.map(element => {
             const hex = parseInt(element).toString(16);
             return hex.length === 1 ? "0" + hex : hex;
         });
 
-        result = `#${hexValues[0]}${hexValues[1]}${hexValues[2]}`;
+        result = `#${colorValues[0]}${colorValues[1]}${colorValues[2]}`;
     }
 
     return result;
 }
 
 function togglePreviewMode(savedTheme) {
+    function toggleVisibility(bool) {
+        let theme;
+        let previewBlock, previewFlex;
+        let mainBlock, mainFlex;
+
+        if(bool) {
+            closeMenu();
+
+            theme = "dark";
+            previewBlock = "block"; previewFlex = "flex";
+            mainBlock = "none"; mainFlex = "none";
+        } else {
+            openMenu();
+
+            theme = "light";
+            previewBlock = "none"; previewFlex = "none";
+            mainBlock = "block"; mainFlex = "flex";
+        }        
+        
+        document.body.style.backgroundImage = `url("/img/${theme}MainTheme.png")`;
+        menuButton.style.display = mainBlock;
+        previewThemeHeader.style.display = previewFlex;
+        previewButton.style.display = previewBlock;
+        prevButton.style.display = mainFlex;
+        nextButton.style.display = mainFlex;
+    }
+    
     return () => {
         colorSelector = document.getElementById("color-selector");
         const colorEntries = document.getElementsByClassName("color-entry");
@@ -95,18 +127,16 @@ function togglePreviewMode(savedTheme) {
         if(!inPreviewMode) {
             inPreviewMode = true;
     
-            closeMenu();
+            toggleVisibility(inPreviewMode);
 
             const savedThemeComponents = savedTheme?.children;
             const savedThemeColors = savedThemeComponents[2].children;
             
-            document.body.style.backgroundImage = `url("/img/darkMainTheme.png")`;
-            menuButton.style.display = "none";
-            previewThemeHeader.style.display = "flex";
             previewThemeHeader.children[0].innerText = savedThemeComponents ? savedThemeComponents[0].innerText : "Theme Name";
-            previewButton.style.display = "block";
-            prevButton.style.display = "none";
-            nextButton.style.display = "none";
+            
+            
+
+
 
             if(savedTheme) {
                 if(isFavorite) {
@@ -128,8 +158,8 @@ function togglePreviewMode(savedTheme) {
 
                     colorValues[i].innerText = convertColorValues(savedThemeColors[i].style.backgroundColor);
 
+                    copyColorButtons[i].innerHTML = `<i class="fa-regular fa-copy"></i>`;
                     copyColorButtons[i].replaceWith(copyColorButtons[i].cloneNode(true));
-
                     copyColorButtons[i].addEventListener("click", () => {
                         colorSelector.children[i].style.backgroundColor = "darkgrey";
                         copyColorButtons[i].style.backgroundColor = "grey";
@@ -142,14 +172,7 @@ function togglePreviewMode(savedTheme) {
         } else {
             inPreviewMode = false;
     
-            openMenu();
-            
-            document.body.style.backgroundImage = `url("/img/lightMainTheme.png")`;
-            menuButton.style.display = "block";
-            previewThemeHeader.style.display = "none";
-            previewButton.style.display = "none";
-            prevButton.style.display = "flex";
-            nextButton.style.display = "flex";
+            toggleVisibility(inPreviewMode);
 
             themeContainer.style.backgroundColor = "rgba(255, 255, 255, 0.9)";
             previewThemeHeader.style.backgroundColor = "white";
@@ -164,13 +187,10 @@ function togglePreviewMode(savedTheme) {
                 listEntryList[i].style.backgroundColor = toggleBackgrounds[currIndex][i + 1];
 
             for(let i = 0; i < colorSelector.children.length; i++) {
-                // Set the background color of the color to corresponding saved theme value
                 colorBackgrounds[i].style.backgroundColor = toggleBackgrounds[currIndex][i];
                 
                 colorValues[i].innerText = toggleBackgrounds[currIndex][i];
 
-                // Update the copy text button to match the saved theme hex value
-                // Delete ALL event listeners
                 copyColorButtons[i].innerHTML = `<i class="fa-regular fa-copy"></i>`;
                 copyColorButtons[i].style.backgroundColor = "grey";
                 

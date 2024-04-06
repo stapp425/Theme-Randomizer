@@ -1,6 +1,5 @@
-const paneEntryList = document.getElementsByClassName("pane-entry");
-const listEntryList = document.getElementsByClassName("list-entry");
-let colorSelector = document.getElementById("color-selector");
+const colorTheme = [...document.getElementsByClassName("pane-entry"), ...document.getElementsByClassName("list-entry")];
+const colorSelector = document.getElementById("color-selector");
 const prevContainer = document.getElementById("prev-bg-colors");
 const nextContainer = document.getElementById("next-bg-colors");
 const nextArrow = document.getElementById("next-arrow");
@@ -8,7 +7,6 @@ const prevArrow = document.getElementById("prev-arrow");
 const prevButton = document.getElementById("previous-button");
 const nextButton = document.getElementById("next-button");
 const saveThemeButton = document.getElementById("save-button");
-const editButton = document.getElementById("edit-button");
 const menuButton = document.getElementById("menu-button");
 const closeMenuButton = document.getElementById("close-menu-button");
 const savedThemesContainer = document.getElementById("saved-themes-container");
@@ -17,10 +15,21 @@ const savedThemesList = document.getElementById("saved-themes-list");
 const showAllThemesButton = document.getElementById("show-all-themes-button");
 const contextMenu = document.getElementById("theme-options");
 const previewThemeHeader = document.getElementById("preview-theme-header");
+const themeContainer = document.getElementById("container");
+const previewOptions = document.getElementById("preview-options");
+const editButtons = document.getElementById("edit-options");
+const favoriteButton = document.getElementById("favorite-button");
+const renameButton = document.getElementById("rename-button");
+const deleteButton = document.getElementById("delete-button");
 const previewButton = document.getElementById("preview-button");
-let themeContainer = document.getElementById("container");
+const notification = document.getElementById("notification");
+const popupWindow = document.getElementById("prompt-popup-window");
+const promptCancelButton = document.getElementById("cancel-button");
+const promptConfirmButton = document.getElementById("confirm-button");
 
 const PORT = 3500;
+
+let confirmAC = new AbortController();
 
 // CANNOT BE BELOW 3
 const maxArrayLength = 5;
@@ -29,19 +38,53 @@ let previewBuffer = [];
 let currentThemeBuffer = [];
 let currIndex = 1;
 
+let inPreviewMode = false;
+let popupWindowOpen = false;
+
 const cooldowns = {
     theme: false,
     button: false,
-    refresh: false
 }
 
 const colors = {
     favorite: "#ffffc8",
     normal: "white",
-    container: "rgba(255, 255, 255, 0.9)"
+    container: "rgba(255, 255, 255, 0.9)",
 }
 
-let inPreviewMode = false;
+const statuses = {
+    success: {
+        color: "#7dff7d",
+        icon: `<i class="fa-solid fa-check"></i>`
+    },
+    alert: {
+        color: "#ffc84b",
+        icon: `<i class="fa-solid fa-triangle-exclamation"></i>`
+    },
+    failure: {
+        color: "#ff6464",
+        icon: `<i class="fa-solid fa-xmark"></i>`
+    }
+}
+
+function pushNotification(status, statusMessage) {
+    const notifElements = notification.children;
+
+    notification.style.display = "flex";
+    notification.style.backgroundColor = status.color;
+    
+    notifElements[0].innerHTML = status.icon;
+
+    notifElements[1].innerText = statusMessage;
+
+    notifElements[2].addEventListener("click", () => {
+        notification.style.display = "none";
+    });
+
+    setTimeout(() => {
+        notification.style.display = "none";
+    }, 5000)
+}
 
 setArrows();
 
@@ -57,11 +100,7 @@ function setArrows() {
 
 addEventListener("resize", setArrows);
 
-// Periodically refreshes the list IF there are changes
-setInterval(() => {
-    populateSavedColors();
-
-}, 30 * 1000);
+setInterval(populateSavedColors, 30 * 1000);
 
 function convertColorValues(colorValue) {
     let result;
@@ -88,6 +127,7 @@ function convertColorValues(colorValue) {
 }
 
 function togglePreviewMode(savedTheme) {
+
     function toggleVisibility(bool) {
         let theme;
         let previewBlock, previewFlex;
@@ -110,98 +150,60 @@ function togglePreviewMode(savedTheme) {
         document.body.style.backgroundImage = `url("/img/${theme}MainTheme.png")`;
         menuButton.style.display = mainBlock;
         previewThemeHeader.style.display = previewFlex;
-        previewButton.style.display = previewBlock;
+        favoriteButton.style.display = previewFlex;
+        previewOptions.style.display = previewFlex;
         prevButton.style.display = mainFlex;
         nextButton.style.display = mainFlex;
     }
     
     return () => {
-        colorSelector = document.getElementById("color-selector");
-        const colorEntries = document.getElementsByClassName("color-entry");
         const colorBackgrounds = document.getElementsByClassName("background");
         const colorValues = document.getElementsByClassName("color-values");
         const copyColorButtons = document.getElementsByClassName("copy");
-        const isFavorite = savedTheme?.style.backgroundColor === convertColorValues("#ffffc8");
-        themeContainer = document.getElementById("container");
+        const colorEntries = colorSelector.children;
 
+        let bgColor, colorEntity;
+        
+        // savedTheme will be guaranteed to exist if preview mode is false
         if(!inPreviewMode) {
             inPreviewMode = true;
-    
-            toggleVisibility(inPreviewMode);
-
-            const savedThemeComponents = savedTheme?.children;
-            const savedThemeColors = savedThemeComponents[2].children;
             
-            previewThemeHeader.children[0].innerText = savedThemeComponents ? savedThemeComponents[0].innerText : "Theme Name";
+            previewThemeHeader.children[0].innerText = savedTheme.children[0].innerText;
             
-            
+            bgColor = savedTheme.style.backgroundColor === convertColorValues(colors.favorite)
+                ? colors.favorite : colors.container;
 
-
-
-            if(savedTheme) {
-                if(isFavorite) {
-                    themeContainer.style.backgroundColor = "#ffffc8";
-                    previewThemeHeader.style.backgroundColor = "#ffffc8";
-
-                    for(const colorEntry of colorEntries)
-                        colorEntry.style.background = "#ffffc8";
-                }
-
-                for(let i = 0; i < paneEntryList.length; i++)
-                    paneEntryList[i].style.backgroundColor = savedThemeColors[i].style.backgroundColor;
-
-                for(let i = 0; i < listEntryList.length; i++)
-                    listEntryList[i].style.backgroundColor = savedThemeColors[i + 1].style.backgroundColor;
+            colorEntity = [...savedTheme.children[2].children].map(element => {
+                return convertColorValues(element.style.backgroundColor);
+            });
                 
-                for(let i = 0; i < savedThemeColors.length; i++) {
-                    colorBackgrounds[i].style.backgroundColor = savedThemeColors[i].style.backgroundColor;
-
-                    colorValues[i].innerText = convertColorValues(savedThemeColors[i].style.backgroundColor);
-
-                    copyColorButtons[i].innerHTML = `<i class="fa-regular fa-copy"></i>`;
-                    copyColorButtons[i].replaceWith(copyColorButtons[i].cloneNode(true));
-                    copyColorButtons[i].addEventListener("click", () => {
-                        colorSelector.children[i].style.backgroundColor = "darkgrey";
-                        copyColorButtons[i].style.backgroundColor = "grey";
-                        copyColorButtons[i].innerHTML = `<i class="fa-solid fa-check"></i>`;
-                        navigator.clipboard.writeText(colorValues[i].innerText);
-                    });
-                }                
-            }
-            
         } else {
             inPreviewMode = false;
-    
-            toggleVisibility(inPreviewMode);
 
-            themeContainer.style.backgroundColor = "rgba(255, 255, 255, 0.9)";
-            previewThemeHeader.style.backgroundColor = "white";
+            bgColor = colors.container;
+            colorEntity = toggleBackgrounds[currIndex];
+        }
+
+        toggleVisibility(inPreviewMode);
+
+        previewThemeHeader.style.backgroundColor = bgColor;
+
+        for(let i = 0; i < colorEntity.length; i++) {
+            colorTheme[i].style.backgroundColor = colorEntity[i];
+
+            colorEntries[i].style.backgroundColor = colors.normal;
             
-            for(const colorEntry of colorEntries)
-                colorEntry.style.background = "white";
+            colorBackgrounds[i].style.backgroundColor = colorEntity[i];
 
-            for(let i = 0; i < paneEntryList.length; i++)
-                paneEntryList[i].style.backgroundColor = toggleBackgrounds[currIndex][i];
+            colorValues[i].innerText = colorEntity[i];
 
-            for(let i = 0; i < listEntryList.length; i++)
-                listEntryList[i].style.backgroundColor = toggleBackgrounds[currIndex][i + 1];
-
-            for(let i = 0; i < colorSelector.children.length; i++) {
-                colorBackgrounds[i].style.backgroundColor = toggleBackgrounds[currIndex][i];
-                
-                colorValues[i].innerText = toggleBackgrounds[currIndex][i];
-
-                copyColorButtons[i].innerHTML = `<i class="fa-regular fa-copy"></i>`;
+            copyColorButtons[i].innerHTML = `<i class="fa-regular fa-copy"></i>`;
+            copyColorButtons[i].addEventListener("click", () => {
+                colorEntries[i].style.backgroundColor = "darkgrey";
                 copyColorButtons[i].style.backgroundColor = "grey";
-                
-                copyColorButtons[i].replaceWith(copyColorButtons[i].cloneNode(true));
-                copyColorButtons[i].addEventListener("click", () => {
-                    colorSelector.children[i].style.backgroundColor = "darkgrey";
-                    copyColorButtons[i].style.backgroundColor = "grey";
-                    copyColorButtons[i].innerHTML = `<i class="fa-solid fa-check"></i>`;
-                    navigator.clipboard.writeText(colorValues[i].innerText);
-                });
-            }
+                copyColorButtons[i].innerHTML = `<i class="fa-solid fa-check"></i>`;
+                navigator.clipboard.writeText(colorValues[i].innerText);
+            });
         }
     }
 }
@@ -209,12 +211,71 @@ function togglePreviewMode(savedTheme) {
 function openMenu() {
     savedThemesContainer.style.display = "flex";
     fadeBackground.style.display = "block";
+    fadeBackground.style.backdropFilter = "blur(0px)";
 }
 
 function closeMenu() {
     savedThemesContainer.style.display = "none";
     fadeBackground.style.display = "none";
 }
+
+function togglePopupWindow() {
+    let display;
+    let blur
+
+    if(!popupWindowOpen) {
+        popupWindowOpen = true;
+        display = "flex";
+        blur = "blur(2px)";
+    } else {
+        popupWindowOpen = false;
+        display = "none";
+        blur = "blur(0px)";
+    }
+
+    popupWindow.style.display = display;
+    fadeBackground.style.display = display;
+    fadeBackground.style.backdropFilter = blur;
+}
+
+function removeTheme() {
+    const previewThemeName = previewThemeHeader.children[0].innerText;
+    togglePopupWindow();
+
+    
+
+    const copiedCurrColors = [...document.getElementsByClassName("delete-color")];
+
+    document.getElementById("delete-theme-name").innerText = previewThemeName;
+    
+    copiedCurrColors.forEach((element, i) => {
+        element.style.backgroundColor = colorTheme[i].style.backgroundColor;
+    });
+
+    // Removed if either clicked on or cancel button is clicked
+    // Listener ABORTED (removed)
+    promptConfirmButton.addEventListener("click", async () => {
+        await fetchFromAPI("DELETE", "api/colors", {
+            body: {
+                name: previewThemeName
+            }
+        });
+
+        togglePopupWindow();
+        setTimeout(togglePreviewMode(), 0);
+        
+        pushNotification(statuses.alert, "Theme deleted!");
+        populateSavedColors();
+    }, { once: true, signal: confirmAC.signal });
+}
+
+promptCancelButton.addEventListener("click", () => {
+    confirmAC.abort();
+    confirmAC = new AbortController();
+    togglePopupWindow();
+});
+
+deleteButton.addEventListener("click", removeTheme);
 
 previewButton.addEventListener("click", togglePreviewMode());
 
@@ -266,7 +327,7 @@ saveThemeButton.addEventListener("click", async () => {
     const themeInput = document.getElementById("name-prompt");
     const inputValue = themeInput.value;
     
-    function revertToDefault() {
+    function revertToDefault() {        
         setTimeout(() => {
             saveThemeButton.style.backgroundColor = "lightgrey";
             saveThemeButton.innerText = "Save!";
@@ -274,14 +335,42 @@ saveThemeButton.addEventListener("click", async () => {
         }, 5000);
     }
     
+    
+
+    if (inputValue && !cooldowns.button) {
+        try {
+            const data = await fetchFromAPI("POST", "api/colors", {
+                body: {
+                    name: inputValue,
+                    colors: toggleBackgrounds[currIndex],
+                    favorite: false
+                }
+            });
+            
+            if (Object.hasOwn(data, "SUCCESS"))
+                responseOk();
+            else 
+                responseNotOk();
+        } catch(err) {
+            console.error(`[ERROR]: ${err}`);
+        }    
+    } else
+        responseNotOk();
+
+    cooldowns.button = true;
+
+    setTimeout(() => {
+        cooldowns.button = false;
+    }, 6000);
+
     function responseOk() {
+        revertToDefault();
+
         saveThemeButton.style.backgroundColor = "green";
         saveThemeButton.style.color = "white";
         saveThemeButton.innerHTML = `<i class="fa-solid fa-check"></i>`;
 
-        revertToDefault();
-
-
+        pushNotification(statuses.success, "Theme created!");
         populateSavedColors();
     }
 
@@ -290,122 +379,87 @@ saveThemeButton.addEventListener("click", async () => {
         saveThemeButton.style.color = "white";
         saveThemeButton.innerHTML = `<i class="fa-solid fa-xmark"></i>`;
 
+        pushNotification(statuses.failure, !inputValue ? "Enter a theme name." : "Theme already exists!");
+
         revertToDefault();
     }
-
-    if (inputValue && !cooldowns.button) {
-        try {
-            const response = await fetch(`http://localhost:${PORT}/api/colors`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    name: inputValue,
-                    colors: toggleBackgrounds[currIndex],
-                    favorite: false
-                })
-            });
-            
-            if (response.ok)
-                responseOk();
-            else 
-                responseNotOk();
-            
-            const data = await response.json();
-            console.log(data);
-        } catch(err) {
-            console.error("[ERROR]: Somethin went wrong adding the theme color.");
-        }    
-    } else
-        responseNotOk();
-
-        cooldowns.button = true;
-
-        setTimeout(() => {
-            cooldowns.button = false;
-        }, 6000);
 });
 
 showAllThemesButton.addEventListener("click", () => {
     open(`http://localhost:${PORT}/all`, "_blank");
 });
 
-async function populateSavedColors() {
-    console.log("color update called")
-    if(!cooldowns.refresh) {
+async function populateSavedColors() {    
+    // Empty list
+    savedThemesList.innerHTML = "";
+    
+    try {
+        const data = await fetchFromAPI("GET", "api/colors/limited");
         
-        // Empty list
-        savedThemesList.innerHTML = "";
-        
-        try {
-            const response = await fetch(`http://localhost:${PORT}/api/colors/limited`, {
-                headers: {
-                    "Content-Type": "application/json"
-                }
-            });
-
-            const data = await response.json();
-            
-            if (Array.isArray(data) && data.length > 0) {
-                for(let i = 0; i < data.length; i++) {
-                    const savedTheme = document.createElement("button");
-                    savedTheme.className = "saved-theme";
-                    
-                    savedTheme.style.backgroundColor = data[i].favorite ? "#ffffc8" : "white";
-
-                    const themeName = document.createElement("div");
-                    themeName.className = "theme-name";
-                    themeName.innerText = data[i].name;
-
-                    savedTheme.appendChild(themeName);
-
-                    const lineBreak = document.createElement("hr");
-                    lineBreak.className = "theme-break";
-                    savedTheme.appendChild(lineBreak);
-
-                    const savedColorContainer = document.createElement("div");
-                    savedColorContainer.className = "saved-color-container";
-
-                    for(let j = 0; j < data[i].colors.length; j++) {
-                        const savedColor = document.createElement("div");
-                        savedColor.className = "saved-color";
-                        savedColor.style.backgroundColor = data[i].colors[j];
-
-                        savedColorContainer.appendChild(savedColor);
-
-                        savedTheme.appendChild(savedColorContainer);
-                    }
-
-                    savedTheme.addEventListener("click", togglePreviewMode(savedTheme));
-
-                    savedThemesList.appendChild(savedTheme);
-                }
-            } else {
-                savedThemesList.innerHTML = `
-                    <div id="no-themes-found">
-                        <p style="font-size: 96px; color: rgba(0, 0, 0, 0.5)"><i class="fa-regular fa-face-frown"></i></p>
-                        <h1 style="text-align: center; font-size: 26px">No themes found!</h1>
-                        <p><i style="color: rgb(0, 0, 0, 0.75)">Try creating a new one!</i></p>
-                    </div>`;
-            }
+        if (Array.isArray(data) && data.length > 0) {
+            for(let i = 0; i < data.length; i++) {
+                const savedTheme = document.createElement("button");
+                savedTheme.className = "saved-theme";
                 
-        } catch(err) {
-            console.error(`[ERROR]: Colors failed to populate!\nReason: ${err}`);
+                savedTheme.style.backgroundColor = data[i].favorite ? colors.favorite : "white";
+
+                const themeName = document.createElement("div");
+                themeName.className = "theme-name";
+                themeName.innerText = data[i].name;
+
+                savedTheme.appendChild(themeName);
+
+                const lineBreak = document.createElement("hr");
+                lineBreak.className = "theme-break";
+                savedTheme.appendChild(lineBreak);
+
+                const savedColorContainer = document.createElement("div");
+                savedColorContainer.className = "saved-color-container";
+
+                for(let j = 0; j < data[i].colors.length; j++) {
+                    const savedColor = document.createElement("div");
+                    savedColor.className = "saved-color";
+                    savedColor.style.backgroundColor = data[i].colors[j];
+
+                    savedColorContainer.appendChild(savedColor);
+
+                    savedTheme.appendChild(savedColorContainer);
+                }
+
+                savedTheme.addEventListener("click", togglePreviewMode(savedTheme));
+
+                savedThemesList.appendChild(savedTheme);
+            }
+        } else {
             savedThemesList.innerHTML = `
-                <div id="server-error">
-                    <p style="font-size: 96px; color: rgba(0, 0, 0, 0.5)"><i class="fa-regular fa-face-dizzy"></i></p>
-                    <h1 style="text-align: center; font-size: 26px">Server Offline!</h1>
-                    <p><i style="color: rgb(0, 0, 0, 0.75)">Try again later.</i></p>
+                <div id="no-themes-found">
+                    <p style="font-size: 96px; color: rgba(0, 0, 0, 0.5)"><i class="fa-regular fa-face-frown"></i></p>
+                    <h1 style="text-align: center; font-size: 26px">No themes found!</h1>
+                    <p><i style="color: rgb(0, 0, 0, 0.75)">Try creating a new one!</i></p>
                 </div>`;
         }
+    } catch(err) {
+        console.error(`[ERROR]: Colors failed to populate!\nReason: ${err}`);
+        savedThemesList.innerHTML = `
+            <div id="server-error">
+                <p style="font-size: 96px; color: rgba(0, 0, 0, 0.5)"><i class="fa-regular fa-face-dizzy"></i></p>
+                <h1 style="text-align: center; font-size: 26px">Server Offline!</h1>
+                <p><i style="color: rgb(0, 0, 0, 0.75)">Try again later.</i></p>
+            </div>`;
+    }
+}
 
-        cooldowns.refresh = true;
+async function fetchFromAPI(httpMethod, uri, req) {
+    const reqBody = {
+        method: httpMethod,
+        headers: { "Content-Type": "application/json" },
+    }
 
-        setTimeout(() => {
-            cooldowns.refresh = false;
-        }, 2000);
-    }   
+    if (req?.body) reqBody.body = JSON.stringify(req.body);
+    
+    const response = await fetch(`http://localhost:${PORT}/${uri}`, reqBody);
+
+    return await response.json();
 }
 
 function displayValues() {
@@ -425,10 +479,9 @@ function displayValues() {
             nextContainerChildren[i].style.backgroundColor = previewBuffer[i];
     }
 
-    paneEntryList[0].style.backgroundColor = currEntry[0];
-    listEntryList[0].style.backgroundColor = currEntry[1];
-    listEntryList[1].style.backgroundColor = currEntry[2];
-    listEntryList[2].style.backgroundColor = currEntry[3];
+    colorTheme.forEach((element, i) => {
+        element.style.backgroundColor = currEntry[i];
+    });
 }
 
 function updateCurrentValues() {
@@ -491,11 +544,9 @@ function initializeColorTheme() {
         nextContainer.appendChild(nextChild);
     }
 
-    for (const paneEntry of paneEntryList)
-        createThemeEntry(paneEntry)
-
-    for (const listEntry of listEntryList)
-        createThemeEntry(listEntry)
+    colorTheme.forEach(element => {
+        createThemeEntry(element);
+    });
 }
 
 initializeDefaultValues();

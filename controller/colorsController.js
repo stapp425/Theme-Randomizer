@@ -8,7 +8,7 @@ async function getAllThemes(req, res) {
             name: 1
         });
 
-        if(!allThemes) res.status(404).json("There are no themes present!");
+        if(!allThemes) res.status(404).json({ "FAILURE" : "There are no themes present!" });
 
         res.json(allThemes)
     } catch(err) {
@@ -20,7 +20,7 @@ async function getFavThemes(req, res) {
     try {
         const favThemes = await Color.find({ favorite: true });
 
-        if(!favThemes.length) return res.status(404).json({ "message": `There are no favorited themes!` });
+        if(!favThemes.length) return res.status(404).json({ "FAILURE": `There are no favorited themes!` });
 
         res.json(favThemes);
     } catch(err) {
@@ -46,7 +46,7 @@ async function getLimitedThemes(req, res) {
             name: 1
         }).limit(process.env.MAX_THEMES_DISPLAYED);
         
-        if(!limitedThemes) return res.status(409).json({ "message": "There are no themes!" })
+        if(!limitedThemes) return res.status(409).json({ "FAILURE": "There are no themes!" })
         
         res.json(limitedThemes);
     } catch(err) {
@@ -60,7 +60,7 @@ async function addNewTheme(req, res) {
     
     const duplicate = await Color.findOne({ name: themeName })
     
-    if(duplicate) return res.status(409).json({ "message": "This color theme already exists!" })
+    if(duplicate) return res.status(409).json({ "FAILURE": "This color theme already exists!" })
 
     try {
         await Color.create({
@@ -82,7 +82,7 @@ async function updateTheme(req, res) {
 
     const nameFound = await Color.findOne({ name: themeName });
 
-    if(!nameFound) return res.status(404).json({ "message": `${themeName} was not found!` })
+    if(!nameFound) return res.status(404).json({ "FAILURE": `${themeName} was not found!` })
 
     try {
         if(newName)

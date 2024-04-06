@@ -27,73 +27,118 @@ body {
     align-items: center;
 }
 
-#theme-options {
-    height: 150px;
-    width: 175px;
-    border: none;
-    list-style: none;
-    overflow: hidden;
+#notification {
     position: absolute;
-    bottom: 15px;
-    right: 15px;
-    box-shadow: var(--uniform-shadow);
-    border-radius: calc(var(--uniform-border-radius) - 5px);
+    top: 20px;
+    left: 50%;
+    left: calc(50% - 150px);
+    width: 300px;
+    padding: 10px;
+    border: none;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.7);
+    border-radius: 1000px;
+    background-color: white;
+    display: none;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 1001;
+}
+
+#notification-icon {
+    height: 30px;
+    width: 30px;
+    font-size: 18px;
+    border-radius: 50%;
     display: flex;
-    flex-direction: column;
     justify-content: center;
     align-items: center;
-    z-index: 500;
 }
 
-#theme-options > button {
+#close-notification {
+    height: 30px;
+    width: 30px;
     border: none;
-    height: 100%;
-    width: 100%;
-    padding: 10px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-size: 16px;
-    font-weight: 600;
-}
-
-.icon-holder {
-    height: 25px;
-    width: 25px;
-    border: none;
-    font-size: 16px;
+    border-radius: 50%;
+    background-color: transparent;
     display: flex;
     justify-content: center;
     align-items: center;
     font-size: 18px;
-}
-
-#favorite-o, #rename-o {
-    background-color: white;
     transition: 0.2s ease-in-out;
 }
 
-#favorite-o:hover, #rename-o:hover {
+#close-notification:hover {
     cursor: pointer;
-    background-color: lightgrey;
+    color: white;
+    background-color: rgba(0, 0, 0, 0.75);
 }
 
-#delete-o {
+#prompt-popup-window {
+    overflow: hidden;
+    background-color: white;
+    border-radius: var(--uniform-border-radius);
+    text-align: center;
+    position: absolute;
+    height: 400px;
+    width: 500px;
+    padding: 20px;
+    display: none;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 1000;
+}
+
+#prompt-popup-window > * {
+    width: 100%;
+}
+
+#delete-theme {
+    border: 2px solid lightgrey;
+    border-radius: var(--uniform-border-radius);
+    padding: 15px;
+}
+
+#delete-theme-container {
+    height: 75px;
+    display: flex;
+    justify-content: space-evenly;
+    align-items: center;
+}
+
+.delete-color {
+    height: 40px;
+    width: 40px;
+    border: var(--default-border);
+    border-radius: var(--uniform-border-radius);
+    background-color: white;
+}
+
+#prompt-selection {
+    display: flex;
+    justify-content: space-between;
+}
+
+#prompt-selection > button {
+    border: none;
+    background-color: darkgrey;
+    font-size: 14px;
+    border-radius: 1000px;
+    padding: 10px;
+    width: calc(50% - 10px);
+    transition: 0.2s ease-in-out;
+}
+
+#cancel-button:hover {
+    cursor: pointer;
+    color: white;
+    background-color: green;
+}
+
+#confirm-button:hover {
+    cursor: pointer;
     color: white;
     background-color: red;
-    transition: 0.2s ease-in-out;
-}
-
-#delete-o:hover {
-    cursor: pointer;
-    background-color: darkred;
-}
-
-.option-icon {
-    border: var(--default-border);
-    height: 25px;
-    width: 25px;
-    
 }
 
 #fade-out-background {
@@ -105,6 +150,7 @@ body {
     width: 100%;
     display: none;
     background-color: rgba(0, 0, 0, 0.35);
+    backdrop-filter: blur(2px);
 }
 
 #menu-button {
@@ -117,7 +163,7 @@ body {
     border-radius: calc(var(--uniform-border-radius) - 3px);
 }
 
-#menu-button, #close-menu-button, #save-button, #edit-button, #show-all-themes-button {
+#menu-button, #close-menu-button, #save-button, #show-all-themes-button {
     color: black;
     text-align: center;
     background-color: lightgrey;
@@ -125,7 +171,7 @@ body {
     transition: 0.2s ease-in-out;
 }
 
-#menu-button:hover, #close-menu-button:hover, #save-button:hover, #edit-button:hover, #show-all-themes-button:hover {
+#menu-button:hover, #close-menu-button:hover, #save-button:hover, #show-all-themes-button:hover {
     cursor: pointer;
     background-color: black;
     color: white;
@@ -161,35 +207,7 @@ body {
     align-items: center;
 }
 
-#edit-button {
-    width: 75%;
-    padding: 10px;
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
-    align-items: center;
-    gap: 10px;
-}
 
-#edit-options {
-    position: absolute;
-    width: 100%;
-    border: var(--default-border);
-    background-color: rgba(0, 0, 0, 0.65);
-    display: none;
-    flex-direction: row;
-    justify-content: space-evenly;
-}
-
-#edit-options > button {
-    /* border-radius: 0; */
-    color: white;
-    background-color: transparent;
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
 
 #save-box {
     height: 150px;
@@ -288,14 +306,14 @@ body {
     width: 50%;
 }
 
-#edit-button, #show-all-themes-button {
+#show-all-themes-button {
     font-size: 16px;
     border-radius: var(--uniform-border-radius);
     padding: 10px;
     width: 100%;
 }
 
-#save-button:hover, #edit-button:hover {
+#save-button:hover {
     cursor: pointer;
 
 }
@@ -330,11 +348,14 @@ body {
 }
 
 #preview-theme-header {
-    min-width: 40%;
-    max-width: 75%;
+    width: 350px;
+    position: absolute;
+    translate: (-50%, -50%);
+    top: -90px;
+    left: calc(50% - 175px);
     border: none;
     border-radius: var(--uniform-border-radius);
-    padding: 15px;
+    padding: 10px;
     background-color: rgba(255, 255, 255, 0.9);
     display: none;
     flex-direction: column;
@@ -351,9 +372,47 @@ body {
     font-size: 12px;
 }
 
-#preview-button {
-    width: 35%;
+#preview-options {
+    position: absolute;
+    bottom: -100px;
+    left: calc(50% - calc(100% / 2));
+    border: var(--default-border);
+    height: 100px;
+    width: 100%;
     display: none;
+    flex-direction: column;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+}
+
+#edit-options {
+    width: 100%;
+    border: var(--default-border);
+    background-color: white;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-evenly;
+}
+
+#edit-options > button {
+    border-radius: 1000px;
+    color: black;
+    background-color: transparent;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#edit-options > button:hover {
+    cursor: pointer;
+}
+
+#preview-button {
+    translate: (-50%, -50%);
+    width: 250px;
+    display: block;
     color: white;
     font-size: 18px;
     font-weight: 700;
@@ -618,6 +677,14 @@ body {
         height: 100%;
         width: 100%;
         flex-direction: row;
+    }
+
+    #preview-theme-header {
+        top: -85px;
+    }
+
+    #preview-button {
+        bottom: -65px;
     }
 
     #container {

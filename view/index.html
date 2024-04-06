@@ -10,29 +10,16 @@
 
   <body>
     <div id="fade-out-background"></div>
-    
-    <!-- <ul id="theme-options">
-      <button id="favorite-o">
-        <div class="icon-holder">
-          <i class="fa-regular fa-star"></i>
-        </div>
-        <span>Favorite</span>
-      </button>
 
-      <button id="rename-o">
-        <div class="icon-holder">
-          <i class="fa-solid fa-pen"></i>
-        </div>
-        <span>Rename</span>
+    <div id="notification">
+      <div id="notification-icon">
+        <i class="fa-solid fa-check"></i>
+      </div>
+      <div id="notification-message">Message</div>
+      <button id="close-notification">
+        <i class="fa-solid fa-xmark"></i>
       </button>
-
-      <button id="delete-o">
-        <div class="icon-holder">
-          <i class="fa-solid fa-trash"></i>
-        </div>
-        <span>Delete</span>
-      </button>
-    </ul> -->
+    </div>
 
     <button id="previous-button">
       <!-- To be implemented by JavaScript -->  
@@ -43,14 +30,13 @@
 
     
     <div id="current-theme-container">
-      <div id="preview-theme-header">
-        <h1 id="preview-theme-name">Theme Name</h1>
-        <p id="preview-mode-text"><i>Preview Mode</i></p>
-      </div>
-
-
       <!-- <h1 style="position: absolute; top: 5px">Current Width: <span id="screen-width-text"></span></h1> -->
       <div id="container">
+        <div id="preview-theme-header">
+          <h1 id="preview-theme-name">Theme Name</h1>
+          <p id="preview-mode-text"><i>Preview Mode</i></p>
+        </div>
+
         <div id="color-theme">
           <div id="pane">
             <div class="pane-entry">
@@ -90,15 +76,33 @@
             </div>
           </div>
         </div>
+
+        <div id="preview-options">
+          <!-- <i class="fa-solid fa-star"></i> -->
+          <!-- <i class="fa-regular fa-star"></i> -->
+          <div id="edit-options">
+            <button id="favorite-button">
+              <i class="fa-regular fa-star"></i>
+              Favorite
+            </button>
+            <button id="rename-button">
+              <i class="fa-regular fa-pen-to-square"></i>
+              Rename
+            </button>
+            <button id="delete-button">
+              <i class="fa-solid fa-trash"></i>
+              Delete
+            </button>
+          </div>
+
+          <button id="preview-button">
+            Exit Preview
+          </button>
+        </div>
+
+        
       </div>
-      
-      <button id="preview-button">
-        Exit Preview
-      </button>
-
-
     </div>
-    
     
     <button id="next-button">
       <!-- To be implemented by JavaScript -->
@@ -130,41 +134,6 @@
 
       <hr style="height: 1px; width: 100%; border: 1px dashed rgba(0, 0, 0, 0.5)">
 
-      <div id="edit-options">
-        <button id="favorite-option">
-          <div class="icon-holder">
-            <i class="fa-regular fa-star"></i>
-          </div>
-          <span>Favorite</span>
-        </button>
-  
-        <button id="rename-option">
-          <div class="icon-holder">
-            <i class="fa-solid fa-pen"></i>
-          </div>
-          <span>Rename</span>
-        </button>
-  
-        <button id="delete-option">
-          <div class="icon-holder">
-            <i class="fa-solid fa-trash"></i>
-          </div>
-          <span>Delete</span>
-        </button>
-
-        <button id="cancel-option">
-          <div class="icon-holder">
-            <i class="fa-solid fa-xmark"></i>
-          </div>
-          <span>Cancel</span>
-        </button>
-      </div>
-
-      <!-- <button id="edit-button">
-        <i class="fa-regular fa-pen-to-square"></i>
-        <span>Enter Edit Mode</span>
-      </button> -->
-
       <div id="saved-themes-list">
         
         <!-- To be implemented by JavaScript -->
@@ -182,8 +151,32 @@
       <button id="show-all-themes-button">
         <span>Show All Themes</span>
       </button>
+    </div>
 
+    <div id="prompt-popup-window">
+      <h1 style="font-size: 36px">Warning!</h1>
+      <p>You are about to delete this color theme:</p>
       
+      <div id="delete-theme">
+        <h1 id="delete-theme-name">Theme Name</h1>
+
+        <div id="delete-theme-container">
+          <div class="delete-color"></div>
+          <div class="delete-color"></div>
+          <div class="delete-color"></div>
+          <div class="delete-color"></div>
+        </div>
+      </div>
+      
+      <p>
+        Are you sure you want to do this?<br>
+        <b>This action cannot be undone!</b>
+      </p>
+      
+      <div id="prompt-selection">
+        <button id="cancel-button">Cancel</button>
+        <button id="confirm-button">Confirm</button>
+      </div>
     </div>
     
     <script src="/scripts/script.js"></script>

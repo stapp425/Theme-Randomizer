@@ -80,16 +80,21 @@ async function updateTheme(req, res) {
     const newName = req.body.newName;
     const toggleFav = req.body.favorite;
 
+    if(!themeName) return res.status(400).json({ "BAD REQUEST": "Please enter a theme name." });
+    if(toggleFav == null && !newName) return res.status(400).json({ "BAD REQUEST": "Please enter a new theme name and/or a favorite." }); 
+    if(newName === themeName) return res.status(409).json({ "FAILURE": `The theme names match!` });
+    
     const nameFound = await Color.findOne({ name: themeName });
+    const themeWithNewName = await Color.findOne({ name: newName });
 
-    if(!nameFound) return res.status(404).json({ "FAILURE": `${themeName} was not found!` })
-
+    if(!nameFound) return res.status(404).json({ "FAILURE": `${themeName} was not found!` });    
+    if(themeWithNewName) return res.status(409).json({ "FAILURE": `${newName} already exists!`});    
+    
     try {
-        if(newName)
-            await Color.updateOne({ name: themeName }, { name: newName });
+        if(toggleFav !== nameFound.favorite)
+            await Color.updateOne({ name: themeName }, { favorite: toggleFav });
 
-        if(toggleFav != null && toggleFav !== nameFound.favorite)
-            await Color.updateOne({ name: newName ? newName : themeName }, { favorite: toggleFav });            
+        await Color.updateOne({ name: themeName }, { name: newName });
 
         res.json({ "SUCCESS": `Color theme ${themeName} successfully updated!` });
     } catch(err) {
@@ -101,7 +106,7 @@ async function removeTheme(req, res) {
     const themeName = req.body.name;
     const nameFound = await Color.findOne({ name: themeName });
 
-    if(!nameFound) return res.status(404).json({ "message": `${themeName} was not found!` })
+    if(!nameFound) return res.status(404).json({ "FAILURE": `${themeName} was not found!` })
 
     try {
         await Color.deleteOne({ name: themeName });

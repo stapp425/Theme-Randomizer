@@ -23,9 +23,12 @@ const renameButton = document.getElementById("rename-button");
 const deleteButton = document.getElementById("delete-button");
 const previewButton = document.getElementById("preview-button");
 const notification = document.getElementById("notification");
-const popupWindow = document.getElementById("prompt-popup-window");
-const promptCancelButton = document.getElementById("cancel-button");
-const promptConfirmButton = document.getElementById("confirm-button");
+const deletePopupWindow = document.getElementById("delete-prompt-popup-window");
+const popupWindows = [...document.getElementsByClassName("popup-window")];
+const cancelButtons = [...document.getElementsByClassName("cancel-button")];
+const confirmButtons = [...document.getElementsByClassName("confirm-button")];
+const namePrompt = document.getElementById("name-prompt");
+const renameThemeInput = document.getElementById("rename-theme-input");
 
 const PORT = 3500;
 
@@ -43,6 +46,7 @@ let popupWindowOpen = false;
 
 const cooldowns = {
     theme: false,
+    refresh: false,
     button: false,
 }
 
@@ -67,9 +71,15 @@ const statuses = {
     }
 }
 
+
+function removeListeners() {
+    confirmAC.abort();
+    confirmAC = new AbortController();
+}
+
 function pushNotification(status, statusMessage) {
     const notifElements = notification.children;
-
+    
     notification.style.display = "flex";
     notification.style.backgroundColor = status.color;
     
@@ -77,11 +87,15 @@ function pushNotification(status, statusMessage) {
 
     notifElements[1].innerText = statusMessage;
 
+    notification.classList.add("notify-active");
+
     notifElements[2].addEventListener("click", () => {
+        notification.classList.remove("notify-active");
         notification.style.display = "none";
     });
 
     setTimeout(() => {
+        notification.classList.remove("notify-active");
         notification.style.display = "none";
     }, 5000)
 }
@@ -100,11 +114,9 @@ function setArrows() {
 
 addEventListener("resize", setArrows);
 
-setInterval(populateSavedColors, 30 * 1000);
-
 function convertColorValues(colorValue) {
     let result;
-
+    
     if(colorValue.charAt(0) === "#") {
         const hexValue = colorValue.substring(1);
         const r = parseInt(hexValue.substring(0, 2), 16);
@@ -140,6 +152,7 @@ function togglePreviewMode(savedTheme) {
             previewBlock = "block"; previewFlex = "flex";
             mainBlock = "none"; mainFlex = "none";
         } else {
+            populateSavedColors();
             openMenu();
 
             theme = "light";
@@ -161,7 +174,7 @@ function togglePreviewMode(savedTheme) {
         const colorValues = document.getElementsByClassName("color-values");
         const copyColorButtons = document.getElementsByClassName("copy");
         const colorEntries = colorSelector.children;
-
+        
         let bgColor, colorEntity;
         
         // savedTheme will be guaranteed to exist if preview mode is false
@@ -188,6 +201,8 @@ function togglePreviewMode(savedTheme) {
 
         previewThemeHeader.style.backgroundColor = bgColor;
 
+        styleFavoriteButton();
+
         for(let i = 0; i < colorEntity.length; i++) {
             colorTheme[i].style.backgroundColor = colorEntity[i];
 
@@ -212,37 +227,162 @@ function openMenu() {
     savedThemesContainer.style.display = "flex";
     fadeBackground.style.display = "block";
     fadeBackground.style.backdropFilter = "blur(0px)";
+
+    savedThemesContainer.animate([
+        { left: "-300px" },
+        { left: "0" }
+    ],
+    {
+        duration: 100,
+        fill: "forwards",
+        easing: "ease-in"
+    });
 }
 
 function closeMenu() {
-    savedThemesContainer.style.display = "none";
+    savedThemesContainer.animate([
+        { left: "0" },
+        {
+            left: "-300px",
+        }
+    ],
+    {
+        duration: 100,
+        fill: "forwards",
+        easing: "ease-in"
+    });
+
+    // TODO: Make display none after animation ends
+    savedThemesContainer.addEventListener("animationend", () => {
+        savedThemesContainer.style.display = "none";
+    });
+
     fadeBackground.style.display = "none";
 }
 
-function togglePopupWindow() {
-    let display;
-    let blur
-
+function toggleFadeBackground() {
+    let display, blur;
+    
     if(!popupWindowOpen) {
-        popupWindowOpen = true;
-        display = "flex";
-        blur = "blur(2px)";
-    } else {
-        popupWindowOpen = false;
         display = "none";
         blur = "blur(0px)";
+    } else {
+        display = "flex";
+        blur = "blur(2px)";
     }
 
-    popupWindow.style.display = display;
     fadeBackground.style.display = display;
     fadeBackground.style.backdropFilter = blur;
 }
 
+function togglePopupWindow(index) {
+    let display;
+
+    if(!popupWindowOpen) {
+        popupWindowOpen = true;
+        display = "flex";
+    } else {
+        popupWindowOpen = false;
+        display = "none";
+    }
+
+    toggleFadeBackground();
+
+    popupWindows[index].style.display = display;
+}
+
+function styleFavoriteButton() {
+    const previewThemeHeaderBackground = previewThemeHeader.style.backgroundColor;
+    const isFavorite = convertColorValues(previewThemeHeaderBackground) === colors.favorite;
+    
+    let favButtonStar, favButtonText
+    
+    if(isFavorite) {
+        favButtonStar = `<i class="fa-solid fa-star"></i>`;
+        favButtonText = "Unfavorite";
+    } else {
+        favButtonStar = `<i class="fa-regular fa-star"></i>`;
+        favButtonText = "Favorite";
+    }
+
+    favoriteButton.innerHTML = `
+        ${favButtonStar}
+        ${favButtonText}
+    `;
+}
+
+async function favoriteTheme() {
+    const previewThemeHeaderBackground = previewThemeHeader.style.backgroundColor;
+    const isFavorite = convertColorValues(previewThemeHeaderBackground) === colors.favorite;
+
+    try {
+        const data = await fetchFromAPI("PUT", "api/colors", {
+            body: {
+                name: previewThemeHeader.children[0].innerText,
+                favorite: isFavorite ? false : true
+            }
+        });
+
+        if(Object.hasOwn(data, "SUCCESS")) {
+            const favStatus = isFavorite ? "unfavorite" : "favorite";
+
+            previewThemeHeader.style.backgroundColor = isFavorite ? colors.container : colors.favorite;
+            styleFavoriteButton();
+
+            removeListeners();
+            
+            pushNotification(statuses.success, `Theme ${favStatus}d!`);
+        } else
+            pushNotification(statuses.failure, "A bad request occurred.");
+    } catch(err) {
+        console.error(err);
+        pushNotification(statuses.failure, "Favorite failed unexpectedly.");
+    }
+}
+
+function renameTheme() {
+    const previewThemeName = previewThemeHeader.children[0].innerText;
+    const renameThemeInput = document.getElementById("rename-theme-input");
+
+    togglePopupWindow(0);
+    
+    confirmButtons[0].addEventListener("click", async () => {
+        const enteredNewThemeName = renameThemeInput.value;
+
+        if(enteredNewThemeName && enteredNewThemeName !== previewThemeName) {
+            try {
+                const data = await fetchFromAPI("PUT", "api/colors", {
+                    body: {
+                        name: previewThemeName,
+                        newName: enteredNewThemeName
+                    }
+                });
+    
+                if(Object.hasOwn(data, "SUCCESS")) {
+                    removeListeners();
+        
+                    pushNotification(statuses.success, "Theme Renamed!");
+                    togglePopupWindow(0);
+                    previewThemeHeader.children[0].innerText = enteredNewThemeName;
+                } else
+                    pushNotification(statuses.failure, "Theme name exists!");
+            } catch(err) {
+                console.error(err);
+                pushNotification(statuses.failure, "Rename failed unexpectedly.");
+            }
+        } else {
+            if(!enteredNewThemeName)
+                pushNotification(statuses.failure, "Enter a new theme name.");
+            else if(enteredNewThemeName === previewThemeName)
+                pushNotification(statuses.failure, "Theme names match!");
+        }
+    }, { signal: confirmAC.signal });
+}
+
 function removeTheme() {
     const previewThemeName = previewThemeHeader.children[0].innerText;
-    togglePopupWindow();
-
     
+    togglePopupWindow(1);
 
     const copiedCurrColors = [...document.getElementsByClassName("delete-color")];
 
@@ -252,34 +392,54 @@ function removeTheme() {
         element.style.backgroundColor = colorTheme[i].style.backgroundColor;
     });
 
-    // Removed if either clicked on or cancel button is clicked
-    // Listener ABORTED (removed)
-    promptConfirmButton.addEventListener("click", async () => {
-        await fetchFromAPI("DELETE", "api/colors", {
-            body: {
-                name: previewThemeName
-            }
-        });
+    confirmButtons[1].addEventListener("click", async () => {
+        try {
+            await fetchFromAPI("DELETE", "api/colors", {
+                body: {
+                    name: previewThemeName
+                }
+            });
 
-        togglePopupWindow();
-        setTimeout(togglePreviewMode(), 0);
-        
-        pushNotification(statuses.alert, "Theme deleted!");
-        populateSavedColors();
-    }, { once: true, signal: confirmAC.signal });
+            removeListeners();
+    
+            togglePopupWindow(1);
+            setTimeout(togglePreviewMode(), 0);
+            
+            pushNotification(statuses.alert, "Theme deleted!");
+        } catch(err) {
+            console.err(`[ERROR]: ${err}`);
+            pushNotification(statuses.failure, "Delete failed unexpectedly.");
+        }
+    }, { signal: confirmAC.signal });
 }
 
-promptCancelButton.addEventListener("click", () => {
-    confirmAC.abort();
-    confirmAC = new AbortController();
-    togglePopupWindow();
-});
+cancelButtons.forEach((button, i) => {
+    button.addEventListener("click", () => {
+        removeListeners();
+        togglePopupWindow(i);
+    })
+})
+
+favoriteButton.addEventListener("click", favoriteTheme);
+
+renameButton.addEventListener("click", renameTheme);
 
 deleteButton.addEventListener("click", removeTheme);
 
 previewButton.addEventListener("click", togglePreviewMode());
 
-menuButton.addEventListener("click", openMenu);
+menuButton.addEventListener("click", () => {
+    if(!cooldowns.refresh) {  
+        populateSavedColors();
+
+        cooldowns.refresh = true;
+        setTimeout(() => {
+            cooldowns.refresh = false;
+        }, 30 * 1000);
+    }
+
+    openMenu();
+});
 
 closeMenuButton.addEventListener("click", closeMenu);
 
@@ -334,8 +494,6 @@ saveThemeButton.addEventListener("click", async () => {
             saveThemeButton.style.color = "black";
         }, 5000);
     }
-    
-    
 
     if (inputValue && !cooldowns.button) {
         try {
@@ -348,11 +506,12 @@ saveThemeButton.addEventListener("click", async () => {
             });
             
             if (Object.hasOwn(data, "SUCCESS"))
-                responseOk();
+                await responseOk();
             else 
                 responseNotOk();
         } catch(err) {
             console.error(`[ERROR]: ${err}`);
+            pushNotification(statuses.failure, "Theme failed to save!");
         }    
     } else
         responseNotOk();
@@ -363,7 +522,7 @@ saveThemeButton.addEventListener("click", async () => {
         cooldowns.button = false;
     }, 6000);
 
-    function responseOk() {
+    async function responseOk() {
         revertToDefault();
 
         saveThemeButton.style.backgroundColor = "green";
@@ -389,7 +548,7 @@ showAllThemesButton.addEventListener("click", () => {
     open(`http://localhost:${PORT}/all`, "_blank");
 });
 
-async function populateSavedColors() {    
+async function populateSavedColors() {
     // Empty list
     savedThemesList.innerHTML = "";
     
@@ -439,7 +598,8 @@ async function populateSavedColors() {
                 </div>`;
         }
     } catch(err) {
-        console.error(`[ERROR]: Colors failed to populate!\nReason: ${err}`);
+        console.error(err);
+        pushNotification(statuses.failure, "Colors failed to populate!");
         savedThemesList.innerHTML = `
             <div id="server-error">
                 <p style="font-size: 96px; color: rgba(0, 0, 0, 0.5)"><i class="fa-regular fa-face-dizzy"></i></p>
@@ -595,8 +755,6 @@ function createEntry(color = "#000000") {
 initializeColorTheme();
 addToBackgrounds();
 displayValues();
-
-populateSavedColors();
 
 function addToBackgrounds() {
     const toggleLength = toggleBackgrounds.length;

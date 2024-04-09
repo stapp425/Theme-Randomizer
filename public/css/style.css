@@ -27,6 +27,20 @@ body {
     align-items: center;
 }
 
+.notify-active {
+    animation: 5s ease-out 1 forwards notify;
+}
+
+@keyframes notify {
+    0% {
+        top: -20px;
+    } 10%, 90% {
+        top: 20px;
+    } 100% {
+        top: -60px;
+    }
+}
+
 #notification {
     position: absolute;
     top: 20px;
@@ -73,23 +87,22 @@ body {
     background-color: rgba(0, 0, 0, 0.75);
 }
 
-#prompt-popup-window {
+.popup-window {
     overflow: hidden;
     background-color: white;
     border-radius: var(--uniform-border-radius);
     text-align: center;
     position: absolute;
-    height: 400px;
     width: 500px;
     padding: 20px;
     display: none;
     flex-direction: column;
     justify-content: space-between;
     align-items: center;
+    gap: 15px;
     z-index: 1000;
 }
-
-#prompt-popup-window > * {
+.popup-window > * {
     width: 100%;
 }
 
@@ -106,6 +119,12 @@ body {
     align-items: center;
 }
 
+#rename-theme-input {
+    padding: 10px;
+    border: 2px solid lightgrey;
+    border-radius: var(--uniform-border-radius);
+}
+
 .delete-color {
     height: 40px;
     width: 40px;
@@ -114,12 +133,12 @@ body {
     background-color: white;
 }
 
-#prompt-selection {
+.prompt-selection {
     display: flex;
     justify-content: space-between;
 }
 
-#prompt-selection > button {
+.prompt-selection > button {
     border: none;
     background-color: darkgrey;
     font-size: 14px;
@@ -129,13 +148,13 @@ body {
     transition: 0.2s ease-in-out;
 }
 
-#cancel-button:hover {
+.cancel-button:hover {
     cursor: pointer;
     color: white;
     background-color: green;
 }
 
-#confirm-button:hover {
+.confirm-button:hover {
     cursor: pointer;
     color: white;
     background-color: red;
@@ -182,7 +201,7 @@ body {
     overflow: hidden;
     position: absolute;
     top: 0;
-    left: 0;
+    left: -300px;
     height: 100%;
     width: 300px;
     padding: 25px;

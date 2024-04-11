@@ -10,7 +10,8 @@ const saveThemeButton = document.getElementById("save-button");
 const menuButton = document.getElementById("menu-button");
 const closeMenuButton = document.getElementById("close-menu-button");
 const savedThemesContainer = document.getElementById("saved-themes-container");
-const fadeBackground = document.getElementById("fade-out-background");
+const menuFadeBackground = document.getElementById("menu-fade-background");
+const popupFadeBackground = document.getElementById("popup-fade-background");
 const savedThemesList = document.getElementById("saved-themes-list");
 const showAllThemesButton = document.getElementById("show-all-themes-button");
 const contextMenu = document.getElementById("theme-options");
@@ -225,8 +226,7 @@ function togglePreviewMode(savedTheme) {
 
 function openMenu() {
     savedThemesContainer.style.display = "flex";
-    fadeBackground.style.display = "block";
-    fadeBackground.style.backdropFilter = "blur(0px)";
+    menuFadeBackground.style.display = "block";
 
     savedThemesContainer.animate([
         { left: "-300px" },
@@ -257,22 +257,19 @@ function closeMenu() {
         savedThemesContainer.style.display = "none";
     });
 
-    fadeBackground.style.display = "none";
+    menuFadeBackground.style.display = "none";
 }
 
 function toggleFadeBackground() {
-    let display, blur;
+    let display;
     
     if(!popupWindowOpen) {
         display = "none";
-        blur = "blur(0px)";
     } else {
         display = "flex";
-        blur = "blur(2px)";
     }
 
-    fadeBackground.style.display = display;
-    fadeBackground.style.backdropFilter = blur;
+    menuFadeBackground.style.display = display;
 }
 
 function togglePopupWindow(index) {

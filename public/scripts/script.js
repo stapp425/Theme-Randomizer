@@ -44,6 +44,13 @@ let currIndex = 1;
 let inPreviewMode = false;
 let popupWindowOpen = false;
 
+const animations = {
+    menu: 100,
+    notification: 3000,
+    theme: 175,
+    popup: 175
+}
+
 const cooldowns = {
     theme: false,
     refresh: false,
@@ -85,19 +92,41 @@ function pushNotification(status, statusMessage) {
     
     notifElements[0].innerHTML = status.icon;
 
+    setTimeout(() => {
+        notification.style.display = "none";
+    }, animations.notification);
+
+    notification.animate(
+        [
+            {
+                top: "-20px",
+                offset: 0
+            },
+            {
+                top: "20px",
+                offset: 0.1
+            },
+            {
+                top: "20px",
+                offset: 0.9
+            },
+            {
+                top: "-60px",
+                offset: 1
+            }
+        ],
+        {
+            duration: animations.notification,
+            fill: "forwards",
+            ease: "ease-in"
+        }
+    );
+    
     notifElements[1].innerText = statusMessage;
 
-    notification.classList.add("notify-active");
-
     notifElements[2].addEventListener("click", () => {
-        notification.classList.remove("notify-active");
         notification.style.display = "none";
     });
-
-    setTimeout(() => {
-        notification.classList.remove("notify-active");
-        notification.style.display = "none";
-    }, 5000)
 }
 
 setArrows();
@@ -225,68 +254,120 @@ function togglePreviewMode(savedTheme) {
 
 function openMenu() {
     savedThemesContainer.style.display = "flex";
-    fadeBackground.style.display = "block";
-    fadeBackground.style.backdropFilter = "blur(0px)";
+    fadeBackground.style.display = "flex";
+    fadeBackground.style.backdropFilter = "blur(0)";
+    
+    fadeBackground.animate(
+        [
+            { opacity: "0" }, 
+            { opacity: "1" }
+        ],
+        {
+            duration: animations.menu,
+            fill: "forwards",
+            easing: "ease-in"
+        }
+    );
 
-    savedThemesContainer.animate([
-        { left: "-300px" },
-        { left: "0" }
-    ],
-    {
-        duration: 100,
-        fill: "forwards",
-        easing: "ease-in"
-    });
+    savedThemesContainer.animate(
+        [
+            { left: "-300px" },
+            { left: "0" }
+        ],
+        {
+            duration: animations.menu,
+            fill: "forwards",
+            easing: "ease-in"
+        }
+    );
 }
 
 function closeMenu() {
-    savedThemesContainer.animate([
-        { left: "0" },
+    setTimeout(() => {
+        fadeBackground.style.display = "none";
+        savedThemesContainer.style.display = "none";
+    }, animations.menu);
+    
+    fadeBackground.animate(
+        [
+            { opacity: "1" }, 
+            { opacity: "0" }
+        ],
         {
-            left: "-300px",
+            duration: 100,
+            fill: "forwards",
+            easing: "ease-in"
         }
-    ],
-    {
-        duration: 100,
-        fill: "forwards",
-        easing: "ease-in"
-    });
+    );
+
+    savedThemesContainer.animate(
+        [
+            { left: "0" },
+            { left: "-300px" }
+        ],
+        {
+            duration: 100,
+            fill: "forwards",
+            easing: "ease-in"
+        }
+    );
 
     // TODO: Make display none after animation ends
-    savedThemesContainer.addEventListener("animationend", () => {
-        savedThemesContainer.style.display = "none";
-    });
 
     fadeBackground.style.display = "none";
 }
 
 function toggleFadeBackground() {
-    let display, blur;
-    
+    let opacityStart, opacityEnd;
+    let blurStart, blurEnd;
+
     if(!popupWindowOpen) {
-        display = "none";
-        blur = "blur(0px)";
+        opacityStart = "0";
+        opacityEnd = "1";
+        blurStart = "blur(0)";
+        blurEnd = "blur(2px)";
     } else {
-        display = "flex";
-        blur = "blur(2px)";
+        opacityStart = "1";
+        opacityEnd = "0";
+        blurStart = "blur(2px)";
+        blurEnd = "blur(0)";
     }
 
-    fadeBackground.style.display = display;
-    fadeBackground.style.backdropFilter = blur;
+    fadeBackground.animate(
+        [
+            { 
+                opacity: opacityStart,
+                backdropFilter: blurStart
+            }, 
+            { 
+                opacity: opacityEnd,
+                backdropFilter: blurEnd
+            }
+        ],
+        {
+            duration: animations.popup,
+            fill: "forwards",
+            easing: "ease-in"
+        }
+    );
 }
 
 function togglePopupWindow(index) {
     let display;
 
+    toggleFadeBackground();
+
     if(!popupWindowOpen) {
+        fadeBackground.style.display = "flex";
         popupWindowOpen = true;
         display = "flex";
     } else {
+        setTimeout(() => {
+            fadeBackground.style.display = "none";
+        }, animations.popup);
         popupWindowOpen = false;
         display = "none";
     }
-
-    toggleFadeBackground();
 
     popupWindows[index].style.display = display;
 }
@@ -581,9 +662,41 @@ async function populateSavedColors() {
                     savedColor.style.backgroundColor = data[i].colors[j];
 
                     savedColorContainer.appendChild(savedColor);
-
                     savedTheme.appendChild(savedColorContainer);
                 }
+
+                // TODO: Position each hover background correctly
+                const hoverBackground = document.createElement("div");
+                hoverBackground.className = "saved-theme-hover-background";
+                savedTheme.appendChild(hoverBackground);
+
+                savedTheme.addEventListener("mouseenter", () => {
+                    hoverBackground.animate(
+                        [
+                            { opacity: "0" },
+                            { opacity: "1" }
+                        ],
+                        {
+                            duration: animations.theme,
+                            fill: "forwards",
+                            easing: "ease-in"
+                        }
+                    );
+                });
+
+                savedTheme.addEventListener("mouseleave", () => {
+                    hoverBackground.animate(
+                        [
+                            { opacity: "1" },
+                            { opacity: "0" }
+                        ],
+                        {
+                            duration: animations.theme,
+                            fill: "forwards",
+                            easing: "ease-in"
+                        }
+                    );
+                })
 
                 savedTheme.addEventListener("click", togglePreviewMode(savedTheme));
 

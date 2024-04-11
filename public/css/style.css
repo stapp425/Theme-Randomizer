@@ -170,6 +170,7 @@ body {
     display: none;
     background-color: rgba(0, 0, 0, 0.35);
     backdrop-filter: blur(2px);
+    opacity: 0;
 }
 
 #menu-button {
@@ -251,6 +252,8 @@ body {
 }
 
 .saved-theme {
+    overflow: none;
+    position: relative;
     border: 2px solid rgba(0, 0, 0, 0.4);
     border-radius: calc(var(--uniform-border-radius) - 3px);
     width: 100%;
@@ -259,6 +262,17 @@ body {
 
 .saved-theme:hover {
     cursor: pointer;
+}
+
+.saved-theme-hover-background {
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: calc(var(--uniform-border-radius) - 5px);
+    position: absolute;
+    opacity: 0;
+    top: 0%;
+    left: 0%;
+    height: 100%;
+    width: 100%;
 }
 
 .theme-name {

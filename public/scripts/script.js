@@ -257,12 +257,21 @@ function openMenu() {
     savedThemesContainer.style.display = "flex";
     menuFadeBackground.style.display = "block";
 
+    menuFadeBackground.animate([
+        { opacity: "0" }, { opacity: "1" }
+    ],
+    {
+        duration: animations.menu,
+        fill: "forwards",
+        easing: "ease-in"
+    });
+    
     savedThemesContainer.animate([
         { left: "-300px" },
         { left: "0" }
     ],
     {
-        duration: 100,
+        duration: animations.menu,
         fill: "forwards",
         easing: "ease-in"
     });
@@ -270,17 +279,17 @@ function openMenu() {
 
 function closeMenu() {
     setTimeout(() => {
-        fadeBackground.style.display = "none";
+        menuFadeBackground.style.display = "none";
         savedThemesContainer.style.display = "none";
     }, animations.menu);
     
-    fadeBackground.animate(
+    menuFadeBackground.animate(
         [
             { opacity: "1" }, 
             { opacity: "0" }
         ],
         {
-            duration: 100,
+            duration: animations.menu,
             fill: "forwards",
             easing: "ease-in"
         }
@@ -292,7 +301,7 @@ function closeMenu() {
             { left: "-300px" }
         ],
         {
-            duration: 100,
+            duration: animations.menu,
             fill: "forwards",
             easing: "ease-in"
         }
@@ -309,7 +318,7 @@ function toggleFadeBackground() {
     if(!popupWindowOpen) {
         display = "none";
     } else {
-        display = "flex";
+        display = "block";
     }
 
     menuFadeBackground.style.display = display;
@@ -318,16 +327,50 @@ function toggleFadeBackground() {
 function togglePopupWindow(index) {
     let display;
 
-    toggleFadeBackground();
-
     if(!popupWindowOpen) {
-        fadeBackground.style.display = "flex";
+        popupFadeBackground.style.display = "block";
+        
+        popupFadeBackground.animate(
+            [
+                { 
+                    opacity: "0",
+                    backdropFilter: "blur(0)"
+                }, { 
+                    opacity: "1",
+                    backdropFilter: "blur(2px)"
+                }
+            ],
+            {
+                duration: animations.menu,
+                fill: "forwards",
+                easing: "ease-in"
+            }
+        );
+
         popupWindowOpen = true;
-        display = "flex";
+        display = "block";
     } else {
         setTimeout(() => {
-            fadeBackground.style.display = "none";
+            popupFadeBackground.style.display = "none";
         }, animations.popup);
+
+        popupFadeBackground.animate(
+            [
+                { 
+                    opacity: "1",
+                    backdropFilter: "blur(2px)"
+                }, { 
+                    opacity: "0",
+                    backdropFilter: "blur(0)"
+                }
+            ],
+            {
+                duration: animations.menu,
+                fill: "forwards",
+                easing: "ease-in"
+            }
+        );
+
         popupWindowOpen = false;
         display = "none";
     }

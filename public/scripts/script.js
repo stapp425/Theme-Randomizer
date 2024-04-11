@@ -45,6 +45,13 @@ let currIndex = 1;
 let inPreviewMode = false;
 let popupWindowOpen = false;
 
+const animations = {
+    menu: 100,
+    notification: 3000,
+    theme: 175,
+    popup: 175
+}
+
 const cooldowns = {
     theme: false,
     refresh: false,
@@ -86,19 +93,41 @@ function pushNotification(status, statusMessage) {
     
     notifElements[0].innerHTML = status.icon;
 
+    setTimeout(() => {
+        notification.style.display = "none";
+    }, animations.notification);
+
+    notification.animate(
+        [
+            {
+                top: "-20px",
+                offset: 0
+            },
+            {
+                top: "20px",
+                offset: 0.1
+            },
+            {
+                top: "20px",
+                offset: 0.9
+            },
+            {
+                top: "-60px",
+                offset: 1
+            }
+        ],
+        {
+            duration: animations.notification,
+            fill: "forwards",
+            ease: "ease-in"
+        }
+    );
+    
     notifElements[1].innerText = statusMessage;
 
-    notification.classList.add("notify-active");
-
     notifElements[2].addEventListener("click", () => {
-        notification.classList.remove("notify-active");
         notification.style.display = "none";
     });
-
-    setTimeout(() => {
-        notification.classList.remove("notify-active");
-        notification.style.display = "none";
-    }, 5000)
 }
 
 setArrows();
@@ -240,22 +269,36 @@ function openMenu() {
 }
 
 function closeMenu() {
-    savedThemesContainer.animate([
-        { left: "0" },
+    setTimeout(() => {
+        fadeBackground.style.display = "none";
+        savedThemesContainer.style.display = "none";
+    }, animations.menu);
+    
+    fadeBackground.animate(
+        [
+            { opacity: "1" }, 
+            { opacity: "0" }
+        ],
         {
-            left: "-300px",
+            duration: 100,
+            fill: "forwards",
+            easing: "ease-in"
         }
-    ],
-    {
-        duration: 100,
-        fill: "forwards",
-        easing: "ease-in"
-    });
+    );
+
+    savedThemesContainer.animate(
+        [
+            { left: "0" },
+            { left: "-300px" }
+        ],
+        {
+            duration: 100,
+            fill: "forwards",
+            easing: "ease-in"
+        }
+    );
 
     // TODO: Make display none after animation ends
-    savedThemesContainer.addEventListener("animationend", () => {
-        savedThemesContainer.style.display = "none";
-    });
 
     menuFadeBackground.style.display = "none";
 }
@@ -275,15 +318,19 @@ function toggleFadeBackground() {
 function togglePopupWindow(index) {
     let display;
 
+    toggleFadeBackground();
+
     if(!popupWindowOpen) {
+        fadeBackground.style.display = "flex";
         popupWindowOpen = true;
         display = "flex";
     } else {
+        setTimeout(() => {
+            fadeBackground.style.display = "none";
+        }, animations.popup);
         popupWindowOpen = false;
         display = "none";
     }
-
-    toggleFadeBackground();
 
     popupWindows[index].style.display = display;
 }
@@ -578,9 +625,41 @@ async function populateSavedColors() {
                     savedColor.style.backgroundColor = data[i].colors[j];
 
                     savedColorContainer.appendChild(savedColor);
-
                     savedTheme.appendChild(savedColorContainer);
                 }
+
+                // TODO: Position each hover background correctly
+                const hoverBackground = document.createElement("div");
+                hoverBackground.className = "saved-theme-hover-background";
+                savedTheme.appendChild(hoverBackground);
+
+                savedTheme.addEventListener("mouseenter", () => {
+                    hoverBackground.animate(
+                        [
+                            { opacity: "0" },
+                            { opacity: "1" }
+                        ],
+                        {
+                            duration: animations.theme,
+                            fill: "forwards",
+                            easing: "ease-in"
+                        }
+                    );
+                });
+
+                savedTheme.addEventListener("mouseleave", () => {
+                    hoverBackground.animate(
+                        [
+                            { opacity: "1" },
+                            { opacity: "0" }
+                        ],
+                        {
+                            duration: animations.theme,
+                            fill: "forwards",
+                            easing: "ease-in"
+                        }
+                    );
+                })
 
                 savedTheme.addEventListener("click", togglePreviewMode(savedTheme));
 

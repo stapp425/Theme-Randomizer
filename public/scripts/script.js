@@ -7,6 +7,7 @@ const nextArrow = document.getElementById("next-arrow");
 const prevArrow = document.getElementById("prev-arrow");
 const prevButton = document.getElementById("previous-button");
 const nextButton = document.getElementById("next-button");
+const cooldownMeters = [...document.getElementsByClassName("cooldown-meter")]
 const saveThemeButton = document.getElementById("save-button");
 const menuButton = document.getElementById("menu-button");
 const closeMenuButton = document.getElementById("close-menu-button");
@@ -53,8 +54,9 @@ const animations = {
     menu: 100,
     notification: 3000,
     theme: 175,
-    popup: 175,
-    copy: 125
+    popup: 100,
+    copy: 125,
+    cycle: 750
 }
 
 const cooldowns = {
@@ -84,9 +86,10 @@ const statuses = {
     }
 }
 
+cooldownMeters[0].style.transformOrigin = "left";
+cooldownMeters[1].style.transformOrigin = "right";
 
 function removeListeners(abortController) {
-    
     signals[abortController].abort();
     signals[abortController] = new AbortController();
 }
@@ -332,10 +335,20 @@ function toggleFadeBackground() {
 }
 
 function togglePopupWindow(index) {
-    let display;
-
     if(!popupWindowOpen) {
+        popupWindows[index].style.display = "flex";
         popupFadeBackground.style.display = "block";
+        
+        popupWindows[index].animate(
+            [
+                { transform: "scale(0)" }, { transform: "scale(1)" }
+            ],
+            {
+                duration: animations.popup,
+                fill: "forwards",
+                easing: "ease-in"
+            }
+        );
         
         popupFadeBackground.animate(
             [
@@ -355,11 +368,22 @@ function togglePopupWindow(index) {
         );
 
         popupWindowOpen = true;
-        display = "flex";
     } else {
         setTimeout(() => {
+            popupWindows[index].style.display = "none";
             popupFadeBackground.style.display = "none";
         }, animations.popup);
+
+        popupWindows[index].animate(
+            [
+                { transform: "scale(1)" }, { transform: "scale(0)" }
+            ],
+            {
+                duration: animations.popup,
+                fill: "forwards",
+                easing: "ease-in"
+            }
+        );
 
         popupFadeBackground.animate(
             [
@@ -379,10 +403,7 @@ function togglePopupWindow(index) {
         );
 
         popupWindowOpen = false;
-        display = "none";
     }
-
-    popupWindows[index].style.display = display;
 }
 
 function styleFavoriteButton() {
@@ -539,6 +560,25 @@ closeMenuButton.addEventListener("click", closeMenu);
 
 prevButton.addEventListener("click", () => {
     if (!cooldowns.theme) {
+        const prevCooldown = cooldownMeters[0];
+        
+        prevCooldown.style.opacity = "1";
+        setTimeout(() => {
+            prevCooldown.style.opacity = "0";
+        }, animations.cycle);
+
+        prevCooldown.animate(
+            [
+                { transform: "scaleX(1)" },
+                { transform: "scaleX(0)" }
+            ],
+            {
+                duration: animations.cycle,
+                fill: "forwards",
+                easing: "linear"
+            }
+        );
+
         if (currIndex > 1) {
             currIndex--;        
     
@@ -551,14 +591,31 @@ prevButton.addEventListener("click", () => {
 
         setTimeout(() => {
             cooldowns.theme = false;
-        }, 750);
+        }, animations.cycle + 25);
     }
 });
 
 nextButton.addEventListener("click", () => {
     if (!cooldowns.theme) {
+        const nextCooldown = cooldownMeters[1];
         
+        nextCooldown.style.opacity = "1";
+        setTimeout(() => {
+            nextCooldown.style.opacity = "0";
+        }, animations.cycle);
 
+        nextCooldown.animate(
+            [
+                { transform: "scaleX(1)" },
+                { transform: "scaleX(0)" }
+            ],
+            {
+                duration: animations.cycle,
+                fill: "forwards",
+                easing: "linear"
+            }
+        );
+        
         resetCopyHoverBackgrounds();
         
         removeListeners("themeAC");
@@ -580,7 +637,7 @@ nextButton.addEventListener("click", () => {
 
         setTimeout(() => {
             cooldowns.theme = false;
-        }, 750);
+        }, animations.cycle + 25);
     }
 });
 

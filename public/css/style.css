@@ -355,6 +355,8 @@ body {
 }
 
 #previous-button, #next-button {
+    position: relative;
+    overflow: hidden;
     margin: calc(var(--uniform-margin) * 4);
     height: 200px;
     width: 85px;
@@ -381,6 +383,16 @@ body {
 #next-button:hover {
     cursor: pointer;
     transform: translateX(5px);
+}
+
+.cooldown-meter {
+    opacity: 0;
+    position: absolute;
+    top: 0;
+    right: 0;
+    height: 100%;
+    width: 100%;
+    background-color: rgba(0, 0, 0, 0.35);
 }
 
 #preview-theme-header {
@@ -619,6 +631,7 @@ body {
 
 #color-selector {
     flex-basis: 85%;
+    border: var(--default-border);
     padding: calc(var(--uniform-margin) * 2);
     width: 100%;
     display: flex;

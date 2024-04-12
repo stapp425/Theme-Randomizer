@@ -54,7 +54,7 @@ const animations = {
     notification: 3000,
     theme: 175,
     popup: 175,
-    copy: 200
+    copy: 125
 }
 
 const cooldowns = {
@@ -233,6 +233,7 @@ function togglePreviewMode(savedTheme) {
             colorEntity = toggleBackgrounds[currIndex];
         }
 
+        resetCopyHoverBackgrounds();
         toggleVisibility(inPreviewMode);
 
         previewThemeHeader.style.backgroundColor = bgColor;
@@ -541,6 +542,7 @@ prevButton.addEventListener("click", () => {
         if (currIndex > 1) {
             currIndex--;        
     
+            resetCopyHoverBackgrounds();
             displayValues();
             updateCurrentValues();
         }
@@ -555,16 +557,9 @@ prevButton.addEventListener("click", () => {
 
 nextButton.addEventListener("click", () => {
     if (!cooldowns.theme) {
-        const copyBackground = `
-            <i class="fa-regular fa-copy"></i>
-            <h1>COPY</h1>`;
+        
 
-        copyThemeButtons.forEach(element => {
-            if(element.innerHTML !== copyBackground)
-                element.innerHTML = `
-                    <i class="fa-regular fa-copy"></i>
-                    <h1>COPY</h1>`;
-        });
+        resetCopyHoverBackgrounds();
         
         removeListeners("themeAC");
         
@@ -760,25 +755,20 @@ async function fetchFromAPI(httpMethod, uri, req) {
     return await response.json();
 }
 
-function displayValues() {
-    const prevContainerChildren = prevContainer.children;
-    const nextContainerChildren = nextContainer.children;
-    const currEntry = toggleBackgrounds[currIndex];
-
-    for (let i = 0; i < prevContainerChildren.length; i++)
-        prevContainerChildren[i].style.backgroundColor = toggleBackgrounds[currIndex - 1][i];
-
-    if (currIndex < toggleBackgrounds.length - 1)
-        for (let i = 0; i < 4; i++)
-            nextContainerChildren[i].style.backgroundColor = toggleBackgrounds[currIndex + 1][i];
-    else {
-        previewNextTheme();
-        for (let i = 0; i < 4; i++)
-            nextContainerChildren[i].style.backgroundColor = previewBuffer[i];
-    }
-
+function resetCopyHoverBackgrounds() {
     colorTheme.forEach((element, i) => {
         const copyButton = copyThemeButtons[i];
+        const currEntry = toggleBackgrounds[currIndex];
+
+        const copyBackground = `
+            <i class="fa-regular fa-copy"></i>
+            <h1>COPY</h1>`;
+
+        if(copyButton.innerHTML !== copyBackground)
+        copyButton.innerHTML = `
+            <i class="fa-regular fa-copy"></i>
+            <h1>COPY</h1>`;
+
         element.style.backgroundColor = currEntry[i];
 
         element.addEventListener("click", () => {
@@ -820,6 +810,26 @@ function displayValues() {
             );
         }, { signal: signals.themeAC.signal });
     });
+}
+
+function displayValues() {
+    const prevContainerChildren = prevContainer.children;
+    const nextContainerChildren = nextContainer.children;
+    
+
+    for (let i = 0; i < prevContainerChildren.length; i++)
+        prevContainerChildren[i].style.backgroundColor = toggleBackgrounds[currIndex - 1][i];
+
+    if (currIndex < toggleBackgrounds.length - 1)
+        for (let i = 0; i < 4; i++)
+            nextContainerChildren[i].style.backgroundColor = toggleBackgrounds[currIndex + 1][i];
+    else {
+        previewNextTheme();
+        for (let i = 0; i < 4; i++)
+            nextContainerChildren[i].style.backgroundColor = previewBuffer[i];
+    }
+
+    resetCopyHoverBackgrounds();
 }
 
 function updateCurrentValues() {

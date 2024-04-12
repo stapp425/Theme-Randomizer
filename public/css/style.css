@@ -542,7 +542,34 @@ body {
     align-items: center;
 }
 
+.copy-theme-background {
+    opacity: 0;
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    font-size: 48px;
+    color: rgba(255, 255, 255, 0.75);
+    background-color: rgba(0, 0, 0, 0.35);
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+}
+
+.copy-theme-background h1 {
+    font-size: 18px;
+}
+
+.pane-entry, .list-entry {
+    cursor: pointer;
+}
+
 .pane-entry {
+    overflow: hidden;
+    position: relative;
     padding: var(--uniform-margin);
     border: none;
     border-radius: var(--uniform-border-radius);
@@ -551,6 +578,9 @@ body {
 }
 
 .list-entry {
+    overflow: hidden;
+    position: relative;
+    border: none;
     border-radius: var(--uniform-border-radius);
     height: calc(33% - var(--uniform-margin));
     width: calc(100% - var(--uniform-margin));

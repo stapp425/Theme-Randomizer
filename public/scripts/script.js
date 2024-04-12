@@ -1,4 +1,5 @@
 const colorTheme = [...document.getElementsByClassName("pane-entry"), ...document.getElementsByClassName("list-entry")];
+const copyThemeButtons = [...document.getElementsByClassName("copy-theme-background")];
 const colorSelector = document.getElementById("color-selector");
 const prevContainer = document.getElementById("prev-bg-colors");
 const nextContainer = document.getElementById("next-bg-colors");
@@ -33,7 +34,10 @@ const renameThemeInput = document.getElementById("rename-theme-input");
 
 const PORT = 3500;
 
-let confirmAC = new AbortController();
+const signals = {
+    confirmAC: new AbortController(),
+    themeAC: new AbortController()
+}
 
 // CANNOT BE BELOW 3
 const maxArrayLength = 5;
@@ -49,7 +53,8 @@ const animations = {
     menu: 100,
     notification: 3000,
     theme: 175,
-    popup: 175
+    popup: 175,
+    copy: 200
 }
 
 const cooldowns = {
@@ -80,9 +85,10 @@ const statuses = {
 }
 
 
-function removeListeners() {
-    confirmAC.abort();
-    confirmAC = new AbortController();
+function removeListeners(abortController) {
+    
+    signals[abortController].abort();
+    signals[abortController] = new AbortController();
 }
 
 function pushNotification(status, statusMessage) {
@@ -348,7 +354,7 @@ function togglePopupWindow(index) {
         );
 
         popupWindowOpen = true;
-        display = "block";
+        display = "flex";
     } else {
         setTimeout(() => {
             popupFadeBackground.style.display = "none";
@@ -416,7 +422,7 @@ async function favoriteTheme() {
             previewThemeHeader.style.backgroundColor = isFavorite ? colors.container : colors.favorite;
             styleFavoriteButton();
 
-            removeListeners();
+            removeListeners("confirmAC");
             
             pushNotification(statuses.success, `Theme ${favStatus}d!`);
         } else
@@ -446,7 +452,7 @@ function renameTheme() {
                 });
     
                 if(Object.hasOwn(data, "SUCCESS")) {
-                    removeListeners();
+                    removeListeners("confirmAC");
         
                     pushNotification(statuses.success, "Theme Renamed!");
                     togglePopupWindow(0);
@@ -463,7 +469,7 @@ function renameTheme() {
             else if(enteredNewThemeName === previewThemeName)
                 pushNotification(statuses.failure, "Theme names match!");
         }
-    }, { signal: confirmAC.signal });
+    }, { signal: signals.confirmAC.signal });
 }
 
 function removeTheme() {
@@ -487,7 +493,7 @@ function removeTheme() {
                 }
             });
 
-            removeListeners();
+            removeListeners("confirmAC");
     
             togglePopupWindow(1);
             setTimeout(togglePreviewMode(), 0);
@@ -497,12 +503,12 @@ function removeTheme() {
             console.err(`[ERROR]: ${err}`);
             pushNotification(statuses.failure, "Delete failed unexpectedly.");
         }
-    }, { signal: confirmAC.signal });
+    }, { signal: signals.confirmAC.signal });
 }
 
 cancelButtons.forEach((button, i) => {
     button.addEventListener("click", () => {
-        removeListeners();
+        removeListeners("confirmAC");
         togglePopupWindow(i);
     })
 })
@@ -549,6 +555,19 @@ prevButton.addEventListener("click", () => {
 
 nextButton.addEventListener("click", () => {
     if (!cooldowns.theme) {
+        const copyBackground = `
+            <i class="fa-regular fa-copy"></i>
+            <h1>COPY</h1>`;
+
+        copyThemeButtons.forEach(element => {
+            if(element.innerHTML !== copyBackground)
+                element.innerHTML = `
+                    <i class="fa-regular fa-copy"></i>
+                    <h1>COPY</h1>`;
+        });
+        
+        removeListeners("themeAC");
+        
         currIndex++;
 
         const toggleLength = toggleBackgrounds.length;
@@ -759,7 +778,47 @@ function displayValues() {
     }
 
     colorTheme.forEach((element, i) => {
+        const copyButton = copyThemeButtons[i];
         element.style.backgroundColor = currEntry[i];
+
+        element.addEventListener("click", () => {
+            navigator.clipboard.writeText(convertColorValues(element.style.backgroundColor));
+            
+            copyButton.innerHTML = `<i class="fa-solid fa-check"></i>`;
+        }, { signal: signals.themeAC.signal });
+
+        element.addEventListener("mouseenter", () => {
+            copyButton.style.display = "flex";
+            copyButton.animate(
+                [
+                    { opacity: "0" },
+                    { opacity: "1" }
+                ],
+                {
+                    duration: animations.copy,
+                    fill: "forwards",
+                    ease: "ease-in"
+                }
+            );
+        }, { signal: signals.themeAC.signal });
+
+        element.addEventListener("mouseleave", () => {
+            setTimeout(() => {
+                copyButton.style.display = "none";
+            }, animations.copy);
+
+            copyButton.animate(
+                [
+                    { opacity: "1" },
+                    { opacity: "0" }
+                ],
+                {
+                    duration: animations.copy,
+                    fill: "forwards",
+                    ease: "ease-in"
+                }
+            );
+        }, { signal: signals.themeAC.signal });
     });
 }
 

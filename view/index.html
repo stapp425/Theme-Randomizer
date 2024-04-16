@@ -9,8 +9,7 @@
   </head>
 
   <body>
-
-    <div id="notification">
+    <div class="notification">
       <div id="notification-icon">
         <i class="fa-solid fa-check"></i>
       </div>
@@ -20,14 +19,12 @@
       </button>
     </div>
 
-    <button id="previous-button">
+    <button class="previous-button">
       <div id="prev-bg-colors"></div>
       <div id="prev-arrow"></div>
-      <div class="cooldown-meter"></div>
+      <div class="cooldown-meter prev-cooldown"></div>
     </button>
-
     
-
     <div id="theme-container" style="position: relative">
       <div id="edit-options">
         <button id="favorite-button">
@@ -44,7 +41,6 @@
         </button>
       </div>
 
-      <!-- <h1 style="position: absolute; top: 5px">Current Width: <span id="screen-width-text"></span></h1> -->
     <div id="container">
       <div id="preview-theme-header">
           <h1 id="preview-theme-name">Theme Name</h1>
@@ -113,25 +109,23 @@
       </div>
     </div>    
     
-    <button id="next-button">
+    <button class="next-button">
       <div id="next-bg-colors"></div>
       <div id="next-arrow"></div>
-      <div class="cooldown-meter"></div>
+      <div class="cooldown-meter next-cooldown"></div>
     </button>
     
     <button id="menu-button">
       <i class="fa-solid fa-bars"></i>
     </button>      
     
-    <div id="saved-themes-container">
-      <!-- <img id="saved-themes-background" src="/img/savedThemesBackground.png"> -->
+    <div class="saved-themes-container">
       <div id="menu-header">
         <button id="close-menu-button">
           <i class="fa-solid fa-bars"></i>
         </button>
         <h1 style="font-size: 26px">Saved Themes</h1>        
       </div>
-      <!-- <hr style="height: 1px; width: 100%; border: 1px dashed rgba(0, 0, 0, 0.5)"> -->
 
       <div id="saved-themes-list"></div>
     </div>
@@ -174,7 +168,7 @@
       </div>
     </div>
 
-    <div class="popup-window">
+    <div class="save-theme-popup popup-window">
       <h1 style="font-size: 24px">Save Theme</h1>
       <input type="text" id="name-prompt" placeholder="Enter Theme Name...">
 
@@ -191,12 +185,12 @@
       </button>
     </div>
 
-    <div id="customization-options">
+    <div class="customization-options">
       <button class="custom-option">
         <i class="fa-regular fa-floppy-disk"></i>
       </button>
 
-      <button class="cancel-option">
+      <button class="cancel-option custom-option">
         <i class="fa-solid fa-xmark"></i>
       </button>
 
@@ -208,8 +202,8 @@
     <div class="hover-description"></div>
 
     <div class="options-fade-background"></div>
-    <div id="menu-fade-background"></div>
-    <div id="popup-fade-background"></div>
+    <div class="menu-fade-background"></div>
+    <div class="popup-fade-background"></div>
     <script src="/scripts/script.js"></script>
   </body>
 </html>

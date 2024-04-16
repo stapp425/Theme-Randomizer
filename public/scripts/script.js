@@ -5,15 +5,15 @@ const prevContainer = document.getElementById("prev-bg-colors");
 const nextContainer = document.getElementById("next-bg-colors");
 const nextArrow = document.getElementById("next-arrow");
 const prevArrow = document.getElementById("prev-arrow");
-const prevButton = document.getElementById("previous-button");
-const nextButton = document.getElementById("next-button");
+const prevButton = document.querySelector(".previous-button");
+const nextButton = document.querySelector(".next-button");
 const cooldownMeters = [...document.getElementsByClassName("cooldown-meter")]
 const saveThemeButton = document.getElementById("save-button");
 const menuButton = document.getElementById("menu-button");
-const closeMenuButton = document.getElementById("close-menu-button");
-const savedThemesContainer = document.getElementById("saved-themes-container");
-const menuFadeBackground = document.getElementById("menu-fade-background");
-const popupFadeBackground = document.getElementById("popup-fade-background");
+const toggleMenuButton = document.getElementById("close-menu-button");
+const savedThemesContainer = document.querySelector(".saved-themes-container");
+const menuFadeBackground = document.querySelector(".menu-fade-background");
+const popupFadeBackground = document.querySelector(".popup-fade-background");
 const optionsFadeBackground = document.querySelector(".options-fade-background");
 const savedThemesList = document.getElementById("saved-themes-list");
 const contextMenu = document.getElementById("theme-options");
@@ -24,8 +24,7 @@ const favoriteButton = document.getElementById("favorite-button");
 const renameButton = document.getElementById("rename-button");
 const deleteButton = document.getElementById("delete-button");
 const previewButton = document.getElementById("preview-button");
-const notification = document.getElementById("notification");
-const deletePopupWindow = document.getElementById("delete-prompt-popup-window");
+const notification = document.querySelector(".notification");
 const popupWindows = [...document.getElementsByClassName("popup-window")];
 const cancelButtons = [...document.getElementsByClassName("cancel-button")];
 const confirmButtons = [...document.getElementsByClassName("confirm-button")];
@@ -33,8 +32,8 @@ const namePrompt = document.getElementById("name-prompt");
 const renameThemeInput = document.getElementById("rename-theme-input");
 const customizationMenu = document.getElementById("customization-menu");
 const statusArrow = document.getElementById("status-arrow");
-const customizationOptions = document.getElementById("customization-options");
-const customOptions = [...customizationOptions.children];
+const customizationOptions = document.querySelector(".customization-options");
+const customOptions = [...document.getElementsByClassName("custom-option")];
 const hoverDescription = document.querySelector(".hover-description");
 
 const PORT = 3500;
@@ -51,9 +50,7 @@ const toggleBackgrounds = [];
 let previewBuffer = [];
 let currentThemeBuffer = [];
 let currIndex = 1;
-
 let inPreviewMode = false;
-let popupWindowOpen = false;
 
 const animations = {
     menu: 100,
@@ -101,49 +98,21 @@ function removeListeners(abortController) {
     signals[abortController] = new AbortController();
 }
 
+notification.children[2].addEventListener("click", () => {
+    notification.style.top = "-40px";
+});
+
 function pushNotification(status, statusMessage) {
     const notifElements = notification.children;
-    
-    notification.style.display = "flex";
+
     notification.style.backgroundColor = status.color;
-    
     notifElements[0].innerHTML = status.icon;
-
-    setTimeout(() => {
-        notification.style.display = "none";
-    }, animations.notification);
-
-    notification.animate(
-        [
-            {
-                top: "-20px",
-                offset: 0
-            },
-            {
-                top: "20px",
-                offset: 0.1
-            },
-            {
-                top: "20px",
-                offset: 0.9
-            },
-            {
-                top: "-60px",
-                offset: 1
-            }
-        ],
-        {
-            duration: animations.notification,
-            fill: "forwards",
-            ease: "ease-in"
-        }
-    );
-    
     notifElements[1].innerText = statusMessage;
 
-    notifElements[2].addEventListener("click", () => {
-        notification.style.display = "none";
-    });
+    notification.classList.toggle("notify");
+    setTimeout(() => {
+        notification.classList.toggle("notify");
+    }, animations.notification);
 }
 
 setOrientation();
@@ -153,8 +122,6 @@ function setOrientation() {
         pageOrientation = "portrait";
         animationOrientation = "X";
         statusArrow.innerHTML = `<i class="fa-solid fa-angle-left"></i>`;
-        cooldownMeters[0].style.transformOrigin = "top";
-        cooldownMeters[1].style.transformOrigin = "bottom";
         nextArrow.innerHTML = '<i class="fa-solid fa-angle-down"></i>';
         prevArrow.innerHTML = '<i class="fa-solid fa-angle-up"></i>';
     } else {
@@ -162,8 +129,6 @@ function setOrientation() {
         animationOrientation = "Y";
         statusArrow.innerHTML = `
         <i class="fa-solid fa-angle-up"></i><h1>OPTIONS</h1>`;
-        cooldownMeters[0].style.transformOrigin = "left";
-        cooldownMeters[1].style.transformOrigin = "right";
         nextArrow.innerHTML = '<i class="fa-solid fa-angle-right"></i>';
         prevArrow.innerHTML = '<i class="fa-solid fa-angle-left"></i>';
     }
@@ -203,19 +168,18 @@ function togglePreviewMode(savedTheme) {
         let mainBlock, mainFlex;
 
         if(bool) {
-            closeMenu();
-
             theme = "dark";
             previewBlock = "block"; previewFlex = "flex";
             mainBlock = "none"; mainFlex = "none";
         } else {
             populateSavedColors();
-            openMenu();
 
             theme = "light";
             previewBlock = "none"; previewFlex = "none";
             mainBlock = "block"; mainFlex = "flex";
-        }        
+        }
+        
+        toggleMenu();
         
         previewButton.style.display = previewFlex;
         favoriteButton.style.display = previewFlex;
@@ -232,7 +196,6 @@ function togglePreviewMode(savedTheme) {
     return () => {        
         let bgColor, colorEntity;
         
-        // savedTheme will be guaranteed to exist if preview mode is false
         if(!inPreviewMode) {
             inPreviewMode = true;
             
@@ -259,164 +222,20 @@ function togglePreviewMode(savedTheme) {
 
         styleFavoriteButton();
 
-        for(let i = 0; i < colorEntity.length; i++) {
-            colorTheme[i].style.backgroundColor = colorEntity[i];
-        }
+        colorEntity.forEach((element, i) => {
+            colorTheme[i].style.backgroundColor = element;
+        });
     }
 }
 
-function openMenu() {
-    savedThemesContainer.style.display = "flex";
-    menuFadeBackground.style.display = "block";
-
-    menuFadeBackground.animate([
-        { opacity: "0" }, { opacity: "1" }
-    ],
-    {
-        duration: animations.menu,
-        fill: "forwards",
-        easing: "ease-in"
-    });
-    
-    savedThemesContainer.animate([
-        { left: "-300px" },
-        { left: "0" }
-    ],
-    {
-        duration: animations.menu,
-        fill: "forwards",
-        easing: "ease-in"
-    });
-}
-
-function closeMenu() {
-    setTimeout(() => {
-        menuFadeBackground.style.display = "none";
-        savedThemesContainer.style.display = "none";
-    }, animations.menu);
-    
-    menuFadeBackground.animate(
-        [
-            { opacity: "1" }, 
-            { opacity: "0" }
-        ],
-        {
-            duration: animations.menu,
-            fill: "forwards",
-            easing: "ease-in"
-        }
-    );
-
-    savedThemesContainer.animate(
-        [
-            { left: "0" },
-            { left: "-300px" }
-        ],
-        {
-            duration: animations.menu,
-            fill: "forwards",
-            easing: "ease-in"
-        }
-    );
-
-    menuFadeBackground.style.display = "none";
-}
-
-function toggleFadeBackground() {
-    let display;
-    
-    if(!popupWindowOpen) {
-        display = "none";
-    } else {
-        display = "block";
-    }
-
-    menuFadeBackground.style.display = display;
-}
-
-function openPopupFadeBackground() {
-    popupFadeBackground.style.display = "block";
-
-    popupFadeBackground.animate(
-        [
-            { 
-                opacity: "0",
-                backdropFilter: "blur(0)"
-            }, { 
-                opacity: "1",
-                backdropFilter: "blur(2px)"
-            }
-        ],
-        {
-            duration: animations.menu,
-            fill: "forwards",
-            easing: "ease-in"
-        }
-    );
-}
-
-function closePopupFadeBackground() {
-    setTimeout(() => {
-        popupFadeBackground.style.display = "none";
-    }, animations.popup);
-    
-    popupFadeBackground.animate(
-        [
-            { 
-                opacity: "1",
-                backdropFilter: "blur(2px)"
-            }, { 
-                opacity: "0",
-                backdropFilter: "blur(0)"
-            }
-        ],
-        {
-            duration: animations.menu,
-            fill: "forwards",
-            easing: "ease-in"
-        }
-    );
+function toggleMenu() {
+    menuFadeBackground.classList.toggle("menu-active");
+    savedThemesContainer.classList.toggle("menu-active");
 }
 
 function togglePopupWindow(index) {
-    if(!popupWindowOpen) {
-        popupWindows[index].style.display = "flex";
-        
-        
-        popupWindows[index].animate(
-            [
-                { transform: "scale(0)" }, { transform: "scale(1)" }
-            ],
-            {
-                duration: animations.popup,
-                fill: "forwards",
-                easing: "ease-in"
-            }
-        );
-        
-        openPopupFadeBackground();
-
-        popupWindowOpen = true;
-    } else {
-        setTimeout(() => {
-            popupWindows[index].style.display = "none";
-        }, animations.popup);
-
-        popupWindows[index].animate(
-            [
-                { transform: "scale(1)" }, { transform: "scale(0)" }
-            ],
-            {
-                duration: animations.popup,
-                fill: "forwards",
-                easing: "ease-in"
-            }
-        );
-
-        closePopupFadeBackground();
-
-        popupWindowOpen = false;
-    }
+    popupWindows[index].classList.toggle("popup-active");
+    popupFadeBackground.classList.toggle("popup-active");
 }
 
 function styleFavoriteButton() {
@@ -509,7 +328,6 @@ function renameTheme() {
 
 function removeTheme() {
     const previewThemeName = previewThemeHeader.children[0].innerText;
-    console.log(`"${previewThemeName}"`);
     
     togglePopupWindow(1);
 
@@ -544,13 +362,11 @@ function removeTheme() {
 
 function saveTheme() {
     togglePopupWindow(2);
-    openPopupFadeBackground();
 
     confirmButtons[2].addEventListener("click", async () => {
         const themeInput = document.getElementById("name-prompt");
         const inputValue = themeInput.value;
-
-        console.log(`Input Value: ${inputValue}`);
+        
         if(inputValue) {
             removeListeners("confirmAC");
             try {
@@ -561,8 +377,6 @@ function saveTheme() {
                         favorite: false
                     }
                 });
-
-                console.log(data);
                 
                 if (Object.hasOwn(data, "SUCCESS")) {
                     togglePopupWindow(2);
@@ -572,7 +386,7 @@ function saveTheme() {
                     pushNotification(statuses.failure, !inputValue ? "Enter a theme name." : "Theme already exists!");
                 }
             } catch(err) {
-                console.error(`[ERROR]: ${err.stack}`);
+                console.error(`[ERROR]: ${err}`);
                 pushNotification(statuses.failure, "Theme failed to save!");
             }
         } else
@@ -582,19 +396,7 @@ function saveTheme() {
 
 statusArrow.addEventListener("click", () => {
     optionsFadeBackground.classList.toggle("options-active");
-    customizationOptions.style.display = "flex";
-
-    customizationOptions.animate(
-        [
-            { transform: `scale(0) translate${animationOrientation}(0)` },
-            { transform: `scale(1) translate${animationOrientation}(-75px)` }
-        ],
-        {
-            duration: animations.popup,
-            fill: "forwards",
-            easing: "ease-in"
-        }
-    );
+    customizationOptions.classList.toggle("custom-options-active");
 })
 
 customOptions.forEach((element, i) => {
@@ -617,22 +419,7 @@ customOptions[0].addEventListener("click", saveTheme);
 
 customOptions[1].addEventListener("click", () => {
     optionsFadeBackground.classList.toggle("options-active");
-    
-    setTimeout(() => {
-        customizationOptions.style.display = "none";
-    }, animations.popup);
-    
-    customizationOptions.animate(
-        [
-            { transform: `scale(1) translate${animationOrientation}(-75px)` },
-            { transform: `scale(0) translate${animationOrientation}(0)` }
-        ],
-        {
-            duration: animations.popup,
-            fill: "forwards",
-            easing: "ease-in"
-        }
-    );
+    customizationOptions.classList.toggle("custom-options-active");
 });
 
 customOptions[2].addEventListener("click", () => {
@@ -664,34 +451,22 @@ menuButton.addEventListener("click", () => {
         }, 30 * 1000);
     }
 
-    openMenu();
+    toggleMenu();
 });
 
-closeMenuButton.addEventListener("click", closeMenu);
+toggleMenuButton.addEventListener("click", toggleMenu);
 
 prevButton.addEventListener("click", () => {
     if (!cooldowns.theme) {
-        const prevCooldown = cooldownMeters[0];
-        
-        prevCooldown.style.opacity = "1";
-        setTimeout(() => {
-            prevCooldown.style.opacity = "0";
-        }, animations.cycle);
-
-        prevCooldown.animate(
-            [
-                { transform: pageOrientation === "landscape" ? "scaleX(1)" : "scaleY(1)"},
-                { transform: pageOrientation === "landscape" ? "scaleX(0)" : "scaleY(0)"}
-            ],
-            {
-                duration: animations.cycle,
-                fill: "forwards",
-                easing: "linear"
-            }
-        );
-
         if (currIndex > 1) {
-            currIndex--;        
+            currIndex--;    
+            
+            const prevCooldown = cooldownMeters[0];
+            
+            prevCooldown.classList.toggle("theme-cooldown-active");
+            setTimeout(() => {
+                prevCooldown.classList.toggle("theme-cooldown-active");
+            }, animations.cycle);
     
             resetCopyHoverBackgrounds();
             displayValues();
@@ -708,27 +483,13 @@ prevButton.addEventListener("click", () => {
 nextButton.addEventListener("click", () => {
     if (!cooldowns.theme) {
         const nextCooldown = cooldownMeters[1];
-        
-        nextCooldown.style.opacity = "1";
-        setTimeout(() => {
-            nextCooldown.style.opacity = "0";
-        }, animations.cycle);
 
-        nextCooldown.animate(
-            [
-                { transform: pageOrientation === "landscape" ? "scaleX(1)" : "scaleY(1)" },
-                { transform: pageOrientation === "landscape" ? "scaleX(0)" : "scaleY(0)" }
-            ],
-            {
-                duration: animations.cycle,
-                fill: "forwards",
-                easing: "linear"
-            }
-        );
+        nextCooldown.classList.toggle("theme-cooldown-active");
+        setTimeout(() => {
+            nextCooldown.classList.toggle("theme-cooldown-active");
+        }, animations.cycle);
         
         resetCopyHoverBackgrounds();
-        
-        removeListeners("themeAC");
         
         currIndex++;
 
@@ -751,22 +512,21 @@ nextButton.addEventListener("click", () => {
 });
 
 async function populateSavedColors() {
-    // Empty list
     savedThemesList.innerHTML = "";
     
     try {
         const data = await fetchFromAPI("GET", "api/colors/limited");
 
         if (Array.isArray(data) && data.length > 0) {
-            for(let i = 0; i < data.length; i++) {
+            data.forEach(element => {
                 const savedTheme = document.createElement("button");
                 savedTheme.className = "saved-theme";
                 
-                savedTheme.style.backgroundColor = data[i].favorite ? colors.favorite : "white";
+                savedTheme.style.backgroundColor = element.favorite ? colors.favorite : "white";
 
                 const themeName = document.createElement("div");
                 themeName.className = "theme-name";
-                themeName.innerText = data[i].name;
+                themeName.innerText = element.name;
 
                 savedTheme.appendChild(themeName);
 
@@ -777,51 +537,31 @@ async function populateSavedColors() {
                 const savedColorContainer = document.createElement("div");
                 savedColorContainer.className = "saved-color-container";
 
-                for(let j = 0; j < data[i].colors.length; j++) {
+                element.colors.forEach(attribute => {
                     const savedColor = document.createElement("div");
                     savedColor.className = "saved-color";
-                    savedColor.style.backgroundColor = data[i].colors[j];
+                    savedColor.style.backgroundColor = attribute;
 
                     savedColorContainer.appendChild(savedColor);
                     savedTheme.appendChild(savedColorContainer);
-                }
+                });
 
                 const hoverBackground = document.createElement("div");
                 hoverBackground.className = "saved-theme-hover-background";
                 savedTheme.appendChild(hoverBackground);
 
                 savedTheme.addEventListener("mouseenter", () => {
-                    hoverBackground.animate(
-                        [
-                            { opacity: "0" },
-                            { opacity: "1" }
-                        ],
-                        {
-                            duration: animations.theme,
-                            fill: "forwards",
-                            easing: "ease-in"
-                        }
-                    );
+                    hoverBackground.classList.toggle("hover-active");
                 });
 
                 savedTheme.addEventListener("mouseleave", () => {
-                    hoverBackground.animate(
-                        [
-                            { opacity: "1" },
-                            { opacity: "0" }
-                        ],
-                        {
-                            duration: animations.theme,
-                            fill: "forwards",
-                            easing: "ease-in"
-                        }
-                    );
+                    hoverBackground.classList.toggle("hover-active");
                 })
 
                 savedTheme.addEventListener("click", togglePreviewMode(savedTheme));
 
                 savedThemesList.appendChild(savedTheme);
-            }
+            });
         } else {
             savedThemesList.innerHTML = `
                 <div id="no-themes-found">
@@ -856,13 +596,15 @@ async function fetchFromAPI(httpMethod, uri, req) {
 }
 
 function resetCopyHoverBackgrounds() {
+    removeListeners("themeAC");
+    
+    const copyBackground = `
+            <i class="fa-regular fa-copy"></i>
+            <h1>COPY</h1>`;
+    
     colorTheme.forEach((element, i) => {
         const copyButton = copyThemeButtons[i];
         const currEntry = toggleBackgrounds[currIndex];
-
-        const copyBackground = `
-            <i class="fa-regular fa-copy"></i>
-            <h1>COPY</h1>`;
 
         if(copyButton.innerHTML !== copyBackground)
         copyButton.innerHTML = `
@@ -871,45 +613,18 @@ function resetCopyHoverBackgrounds() {
 
         element.style.backgroundColor = currEntry[i];
 
+        element.addEventListener("mouseenter", () => {
+            copyButton.classList.toggle("hover-active");
+        }, { signal: signals.themeAC.signal });
+
+        element.addEventListener("mouseleave", () => {
+            copyButton.classList.toggle("hover-active");
+        }, { signal: signals.themeAC.signal });
+
         element.addEventListener("click", () => {
             navigator.clipboard.writeText(convertColorValues(element.style.backgroundColor));
             
             copyButton.innerHTML = `<i class="fa-solid fa-check"></i>`;
-        }, { signal: signals.themeAC.signal });
-
-        element.addEventListener("mouseenter", event => {
-            copyButton.style.display = "flex";
-            copyButton.animate(
-                [
-                    { opacity: "0" },
-                    { opacity: "1" }
-                ],
-                {
-                    duration: animations.copy,
-                    fill: "forwards",
-                    ease: "ease-in"
-                }
-            );
-        }, { signal: signals.themeAC.signal });
-
-        
-
-        element.addEventListener("mouseleave", () => {
-            setTimeout(() => {
-                copyButton.style.display = "none";
-            }, animations.copy);
-
-            copyButton.animate(
-                [
-                    { opacity: "1" },
-                    { opacity: "0" }
-                ],
-                {
-                    duration: animations.copy,
-                    fill: "forwards",
-                    ease: "ease-in"
-                }
-            );
         }, { signal: signals.themeAC.signal });
     });
 }

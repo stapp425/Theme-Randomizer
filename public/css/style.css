@@ -20,7 +20,6 @@ body {
     height: 100vh;
     padding: calc(var(--uniform-margin) * 2);
     background-color: white;
-    /* background-image: linear-gradient(to top right, #7d02ee, #00d4ff); */
     background-image: url("/img/lightMainTheme.png");
     background-repeat: repeat;
     display: flex;
@@ -28,21 +27,25 @@ body {
     align-items: center;
 }
 
-#notification {
+.notification {
     position: absolute;
-    top: 20px;
-    left: 50%;
-    left: calc(50% - 150px);
+    top: -60px;
+    margin: 0 auto;
     width: 300px;
     padding: 10px;
     border: none;
     box-shadow: 0 0 5px rgba(0, 0, 0, 0.7);
     border-radius: 1000px;
     background-color: white;
-    display: none;
+    display: flex;
     justify-content: space-between;
     align-items: center;
-    z-index: 1001;
+    z-index: 9999;
+    transition: transform 0.5s ease-in;
+}
+
+.notify {
+    transform: translateY(75px);
 }
 
 #notification-icon {
@@ -82,15 +85,24 @@ body {
     position: absolute;
     width: 500px;
     padding: 20px;
-    display: none;
+    display: flex;
+    transform: scale(0);
     flex-direction: column;
     justify-content: space-between;
     align-items: center;
     gap: 15px;
+    pointer-events: none;
     z-index: 1004;
+    transition: transform 0.1s ease-in;
 }
+
 .popup-window > * {
     width: 100%;
+}
+
+.save-theme-popup {
+    height: 175px;
+    width: 350px;
 }
 
 #delete-theme {
@@ -147,35 +159,47 @@ body {
     background-color: red;
 }
 
-#menu-fade-background, #popup-fade-background {
+.menu-fade-background, .popup-fade-background {
     z-index: 999;
     position: absolute;
     top: 0;
     left: 0;
     height: 100vh;
     width: 100%;
-    display: none;
+    display: block;
+    opacity: 0;
     background-color: rgba(0, 0, 0, 0.35);
+    transition: opacity 0.1s ease-in;
+    pointer-events: none;
 }
 
-#popup-fade-background {
+.popup-fade-background {
     backdrop-filter: blur(2px);
-    opacity: 0;
     z-index: 1003;
+    transition: opacity 0.1s ease-in;
+}
+
+.popup-active {
+    pointer-events: auto;
+    opacity: 1;
+    transform: scale(1);
 }
 
 .options-fade-background {
     z-index: 999;
     position: absolute;
     bottom: -100%;
-    height: 100vh;
+    height: 100%;
     width: 100%;
     opacity: 0;
     background-color: rgba(0, 0, 0, 0.35);
-    transition: 0.5s ease-in-out;
+    transition: 0.35s ease-in-out;
+    pointer-events: none;
+    transition: opacity 0.25s ease-in, transform 0.25s ease-in;
 }
 
 .options-active {
+    pointer-events: auto;
     opacity: 1;
     transform: translateY(-100%);
 }
@@ -204,7 +228,7 @@ body {
     color: white;
 }
 
-#saved-themes-container {
+.saved-themes-container {
     overflow: hidden;
     position: absolute;
     top: 0;
@@ -213,17 +237,24 @@ body {
     width: 300px;
     padding: 25px;
     background-color: white;
-    display: none;
+    display: flex;
     flex-direction: column;
     justify-content: space-between;
     align-items: center;
     gap: 20px;
     z-index: 1000;
     box-shadow: var(--uniform-shadow);
+    transition: transform 0.1s ease-in;
 }
 
-#saved-themes-container > div {
+.saved-themes-container > div {
     width: 100%;
+}
+
+.menu-active {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateX(300px);
 }
 
 #menu-header {
@@ -271,6 +302,7 @@ body {
     left: 0%;
     height: 100%;
     width: 100%;
+    transition: opacity 0.125s ease-in;
 }
 
 .theme-name {
@@ -324,7 +356,7 @@ body {
 }
 
 #name-prompt {
-    width: 85%;
+    /* width: 85%; */
     padding: 10px;
     border: 1px solid rgba(0, 0, 0, 0.5);
     border-radius: calc(var(--uniform-border-radius) - 7px);
@@ -349,7 +381,7 @@ body {
 
 }
 
-#previous-button, #next-button {
+.previous-button, .next-button {
     position: relative;
     overflow: hidden;
     margin: calc(var(--uniform-margin) * 4);
@@ -366,28 +398,49 @@ body {
     transition: transform 0.2s ease-in-out;
 }
 
-#previous-button {
+.previous-button {
     flex-direction: row-reverse;
 }
 
-#previous-button:hover {
+.previous-button:hover {
     cursor: pointer;
     transform: translateX(-5px);
 }
 
-#next-button:hover {
+.next-button:hover {
     cursor: pointer;
     transform: translateX(5px);
 }
 
 .cooldown-meter {
-    opacity: 0;
     position: absolute;
     top: 0;
     right: 0;
     height: 100%;
     width: 100%;
     background-color: rgba(0, 0, 0, 0.35);
+    transform: scaleX(0);
+    transition: 0.75s linear;
+}
+
+.prev-cooldown {
+    transform-origin: left;
+}
+
+.next-cooldown {
+    transform-origin: right;
+}
+
+.theme-cooldown-active {
+    animation: theme-cooldown forwards 1 0.75s linear;
+}
+
+@keyframes theme-cooldown {
+    from {
+        transform: scaleX(1);
+    } to {
+        transform: scaleX(0);
+    }
 }
 
 #preview-theme-header {
@@ -593,11 +646,12 @@ body {
     font-size: 48px;
     color: rgba(255, 255, 255, 0.75);
     background-color: rgba(0, 0, 0, 0.35);
-    display: none;
+    display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
     gap: 20px;
+    transition: opacity 0.175s ease-in;
 }
 
 .copy-theme-background h1 {
@@ -780,17 +834,27 @@ body {
     transform: translateY(-10px);
 }
 
-#customization-options {
+.customization-options {
     border: none;
     height: 10%;
     width: 25%;
     position: absolute;
     bottom: 0;
     margin: auto;
-    display: none;
+    opacity: 0;
+    transform: scale(0);
+    display: flex;
     justify-content: space-evenly;
     align-items: center;
     z-index: 1002;
+    pointer-events: none;
+    transition: 0.1s ease-in;
+}
+
+.custom-options-active {
+    opacity: 1;
+    pointer-events: auto;
+    transform: scale(1) translateY(-75px)
 }
 
 .custom-option, .cancel-option {
@@ -805,7 +869,6 @@ body {
     justify-content: center;
     gap: 10px;
     align-items: center;
-    /* padding: calc(var(--uniform-margin) * 2.5); */
     transition: 0.2s ease-in;
 }
 
@@ -853,6 +916,7 @@ body {
     align-items: center;
     z-index: 1002;
     transition: opacity 0.2s ease-in;
+    pointer-events: none;
 }
 
 .hover-active {
@@ -864,25 +928,41 @@ body {
         flex-direction: column;
     }
 
-    #previous-button, #next-button {
+    .previous-button, .next-button {
         margin: calc(var(--uniform-margin) * 3);
         height: 65px;
         width: 150px;
         flex-direction: column;
     }
 
-    #previous-button {
+    .previous-button {
         flex-direction: column-reverse;
     }
 
-    #previous-button:hover {
+    .previous-button:hover {
         cursor: pointer;
         transform: translateY(-5px);
     }
     
-    #next-button:hover {
+    .next-button:hover {
         cursor: pointer;
         transform: translateY(5px);
+    }
+
+    .prev-cooldown {
+        transform-origin: top;
+    }
+    
+    .next-cooldown {
+        transform-origin: bottom;
+    }
+
+    @keyframes theme-cooldown {
+        from {
+            transform: scaleY(1);
+        } to {
+            transform: scaleY(0);
+        }
     }
 
     #prev-bg-colors, #next-bg-colors {
@@ -899,6 +979,10 @@ body {
         height: 100%;
         width: 100%;
         flex-direction: row;
+    }
+
+    .theme-cooldown-active {
+        transform: scaleY(1);
     }
 
     #preview-theme-header {
@@ -1020,13 +1104,17 @@ body {
         right: 25px;
     }
 
-    #customization-options {
+    .customization-options {
         height: 50%;
         width: 10%;
         top: 0;
         right: 0;
         flex-direction: column;
         transform-origin: right;
+    }
+
+    .custom-options-active {
+        transform: scale(1) translateX(-75px)
     }
 
     .custom-option:hover, #cancel-option:hover {

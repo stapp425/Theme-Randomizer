@@ -34,7 +34,7 @@ const customButtons = [...document.getElementsByClassName("custom-option")];
 const hoverDescription = document.querySelector(".hover-description");
 const navBar = document.querySelector(".nav-bar");
 const navBarToggleButton = document.querySelector(".nav-bar-toggle-button");
-const navBarOptions = [...navBar.children];
+const navBarOptions = document.querySelector(".nav-bar-options");
 
 const PORT = 3500;
 
@@ -136,7 +136,7 @@ function setOrientation() {
 addEventListener("resize", setOrientation);
 
 navBarToggleButton.addEventListener("click", () => {
-    navBar.classList.toggle("nav-bar-opened");
+    navBarOptions.classList.toggle("nav-bar-opened");
 });
 
 function convertColorValues(colorValue) {

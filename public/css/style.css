@@ -5,6 +5,7 @@
     --uniform-margin: 5px;
     --uniform-shadow: 0 0 7px rgba(0, 0, 0, 0.8);
     --uniform-border-radius: 10px;
+    --color-change: 0.35s;
 }
 
 * {
@@ -176,6 +177,7 @@ body {
 .popup-fade-background {
     backdrop-filter: blur(2px);
     z-index: 1003;
+    pointer-events: none;
     transition: opacity 0.1s ease-in;
 }
 
@@ -243,7 +245,6 @@ body {
     align-items: center;
     gap: 20px;
     z-index: 1000;
-    box-shadow: var(--uniform-shadow);
     transition: transform 0.1s ease-in;
 }
 
@@ -255,6 +256,7 @@ body {
     opacity: 1;
     pointer-events: auto;
     transform: translateX(300px);
+    box-shadow: var(--uniform-shadow);
 }
 
 #menu-header {
@@ -263,11 +265,6 @@ body {
     justify-content: space-between;
     align-items: center;
 }
-
-/* #save-box {
-    display: flex;
-    border: var(--default-border);
-} */
 
 #saved-themes-list {
     overflow: hidden;
@@ -330,7 +327,7 @@ body {
 .saved-color {
     height: 25px;
     width: 25px;
-    border: 2px solid black;
+    border: var(--default-border);
     border-radius: calc(var(--uniform-border-radius) - 5px);
     flex-shrink: 0;
 }
@@ -356,7 +353,6 @@ body {
 }
 
 #name-prompt {
-    /* width: 85%; */
     padding: 10px;
     border: 1px solid rgba(0, 0, 0, 0.5);
     border-radius: calc(var(--uniform-border-radius) - 7px);
@@ -576,9 +572,9 @@ body {
 .next-color, .prev-color {
     border: 2px solid black;
     border-radius: 5px;
-    /* box-shadow: var(--uniform-shadow); */
     height: 25px;
     width: 25px;
+    transition: background-color var(--color-change) ease-in;
 }
 
 #prev-arrow, #next-arrow {
@@ -659,7 +655,7 @@ body {
 }
 
 .pane-entry, .list-entry {
-    cursor: pointer;
+    transition: background-color var(--color-change) ease-in;
 }
 
 .pane-entry {
@@ -679,6 +675,10 @@ body {
     border-radius: var(--uniform-border-radius);
     height: calc(33% - var(--uniform-margin));
     width: calc(100% - var(--uniform-margin));
+}
+
+.pane-entry:hover, .list-entry:hover {
+    cursor: pointer;
 }
 
 #info-container {
@@ -721,41 +721,6 @@ body {
     flex-direction: column;
     flex-wrap: wrap;
     justify-content: space-around;
-}
-
-.color-entry {
-    font-weight: 750;
-    border: none;
-    background-color: white;
-    border-radius: 5px;
-    box-shadow: var(--uniform-shadow);
-    padding: calc(var(--uniform-margin) * 3);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.background {
-    border: 2px solid black;
-    border-radius: 5px;
-    /* box-shadow: var(--uniform-shadow); */
-    height: 25px;
-    width: 25px;
-}
-
-.copy {
-    border: none;
-    color: black;
-    background-color: darkgrey;
-    border-radius: 3px;
-    padding: 10px;
-    transition: color 0.2s ease-in-out, background-color 0.2s ease-in-out;
-}
-
-.copy:hover {
-    cursor: pointer;
-    color: white;
-    background-color: black;
 }
 
 #socials {

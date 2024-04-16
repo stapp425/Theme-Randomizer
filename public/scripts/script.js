@@ -1,6 +1,5 @@
 const colorTheme = [...document.getElementsByClassName("pane-entry"), ...document.getElementsByClassName("list-entry")];
 const copyThemeButtons = [...document.getElementsByClassName("copy-theme-background")];
-const colorSelector = document.getElementById("color-selector");
 const prevContainer = document.getElementById("prev-bg-colors");
 const nextContainer = document.getElementById("next-bg-colors");
 const nextArrow = document.getElementById("next-arrow");
@@ -10,7 +9,7 @@ const nextButton = document.querySelector(".next-button");
 const cooldownMeters = [...document.getElementsByClassName("cooldown-meter")]
 const saveThemeButton = document.getElementById("save-button");
 const menuButton = document.getElementById("menu-button");
-const toggleMenuButton = document.getElementById("close-menu-button");
+const closeMenuButton = document.getElementById("close-menu-button");
 const savedThemesContainer = document.querySelector(".saved-themes-container");
 const menuFadeBackground = document.querySelector(".menu-fade-background");
 const popupFadeBackground = document.querySelector(".popup-fade-background");
@@ -18,8 +17,6 @@ const optionsFadeBackground = document.querySelector(".options-fade-background")
 const savedThemesList = document.getElementById("saved-themes-list");
 const contextMenu = document.getElementById("theme-options");
 const previewThemeHeader = document.getElementById("preview-theme-header");
-const themeContainer = document.getElementById("container");
-const editButtons = document.getElementById("edit-options");
 const favoriteButton = document.getElementById("favorite-button");
 const renameButton = document.getElementById("rename-button");
 const deleteButton = document.getElementById("delete-button");
@@ -33,13 +30,12 @@ const renameThemeInput = document.getElementById("rename-theme-input");
 const customizationMenu = document.getElementById("customization-menu");
 const statusArrow = document.getElementById("status-arrow");
 const customizationOptions = document.querySelector(".customization-options");
-const customOptions = [...document.getElementsByClassName("custom-option")];
+const customButtons = [...document.getElementsByClassName("custom-option")];
 const hoverDescription = document.querySelector(".hover-description");
 
 const PORT = 3500;
 
 const signals = {
-    mainAC: new AbortController(),
     confirmAC: new AbortController(),
     themeAC: new AbortController(),
 }
@@ -379,6 +375,7 @@ function saveTheme() {
                 });
                 
                 if (Object.hasOwn(data, "SUCCESS")) {
+                    resetCopyHoverBackgrounds();
                     togglePopupWindow(2);
                     pushNotification(statuses.success, "Theme created!");
                     await populateSavedColors();
@@ -399,9 +396,9 @@ statusArrow.addEventListener("click", () => {
     customizationOptions.classList.toggle("custom-options-active");
 })
 
-customOptions.forEach((element, i) => {
+customButtons.forEach((element, i) => {
     element.addEventListener("mouseenter", () => {
-        hoverDescription.classList.toggle("hover-active");
+        hoverDescription.classList.add("hover-active");
         hoverDescription.innerText = hoverDescriptionTexts[i];
     });
     
@@ -411,18 +408,18 @@ customOptions.forEach((element, i) => {
     });
 
     element.addEventListener("mouseleave", event => {
-        hoverDescription.classList.toggle("hover-active");
+        hoverDescription.classList.remove("hover-active");
     });
 });
 
-customOptions[0].addEventListener("click", saveTheme);
+customButtons[0].addEventListener("click", saveTheme);
 
-customOptions[1].addEventListener("click", () => {
+customButtons[1].addEventListener("click", () => {
     optionsFadeBackground.classList.toggle("options-active");
     customizationOptions.classList.toggle("custom-options-active");
 });
 
-customOptions[2].addEventListener("click", () => {
+customButtons[2].addEventListener("click", () => {
     open(`http://localhost:${PORT}/all`, "_blank");
 });
 
@@ -454,7 +451,7 @@ menuButton.addEventListener("click", () => {
     toggleMenu();
 });
 
-toggleMenuButton.addEventListener("click", toggleMenu);
+closeMenuButton.addEventListener("click", toggleMenu);
 
 prevButton.addEventListener("click", () => {
     if (!cooldowns.theme) {
@@ -551,11 +548,11 @@ async function populateSavedColors() {
                 savedTheme.appendChild(hoverBackground);
 
                 savedTheme.addEventListener("mouseenter", () => {
-                    hoverBackground.classList.toggle("hover-active");
+                    hoverBackground.classList.add("hover-active");
                 });
 
                 savedTheme.addEventListener("mouseleave", () => {
-                    hoverBackground.classList.toggle("hover-active");
+                    hoverBackground.classList.remove("hover-active");
                 })
 
                 savedTheme.addEventListener("click", togglePreviewMode(savedTheme));
@@ -606,6 +603,9 @@ function resetCopyHoverBackgrounds() {
         const copyButton = copyThemeButtons[i];
         const currEntry = toggleBackgrounds[currIndex];
 
+        if(copyButton.classList.contains("hover-active"))
+            copyButton.classList.remove("hover-active");
+
         if(copyButton.innerHTML !== copyBackground)
         copyButton.innerHTML = `
             <i class="fa-regular fa-copy"></i>
@@ -614,11 +614,11 @@ function resetCopyHoverBackgrounds() {
         element.style.backgroundColor = currEntry[i];
 
         element.addEventListener("mouseenter", () => {
-            copyButton.classList.toggle("hover-active");
+            copyButton.classList.add("hover-active");
         }, { signal: signals.themeAC.signal });
 
         element.addEventListener("mouseleave", () => {
-            copyButton.classList.toggle("hover-active");
+            copyButton.classList.remove("hover-active");
         }, { signal: signals.themeAC.signal });
 
         element.addEventListener("click", () => {

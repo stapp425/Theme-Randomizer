@@ -78,6 +78,34 @@ body {
     background-color: rgba(0, 0, 0, 0.75);
 }
 
+.nav-bar {
+    position: absolute;
+    top: 25px;
+    right: 25px;
+    height: 50px;
+    width: 125px;
+    border: var(--default-border);
+    transform-origin: right;
+    transition: 0.25s ease-in;
+}
+
+.nav-bar > * {
+    position: absolute;
+    top: 0;
+    right: 0;
+    height: 50px;
+    width: 125px;
+    border: var(--default-border);
+}
+
+.nav-bar > *:hover {
+    cursor: pointer;
+}
+
+.nav-bar-opened {
+    transform: scaleX(3);
+}
+
 .popup-window {
     overflow: hidden;
     background-color: white;

@@ -32,6 +32,9 @@ const statusArrow = document.getElementById("status-arrow");
 const customizationOptions = document.querySelector(".customization-options");
 const customButtons = [...document.getElementsByClassName("custom-option")];
 const hoverDescription = document.querySelector(".hover-description");
+const navBar = document.querySelector(".nav-bar");
+const navBarToggleButton = document.querySelector(".nav-bar-toggle-button");
+const navBarOptions = [...navBar.children];
 
 const PORT = 3500;
 
@@ -131,6 +134,10 @@ function setOrientation() {
 }
 
 addEventListener("resize", setOrientation);
+
+navBarToggleButton.addEventListener("click", () => {
+    navBar.classList.toggle("nav-bar-opened");
+});
 
 function convertColorValues(colorValue) {
     let result;
@@ -623,7 +630,6 @@ function resetCopyHoverBackgrounds() {
 
         element.addEventListener("click", () => {
             navigator.clipboard.writeText(convertColorValues(element.style.backgroundColor));
-            
             copyButton.innerHTML = `<i class="fa-solid fa-check"></i>`;
         }, { signal: signals.themeAC.signal });
     });
@@ -632,7 +638,6 @@ function resetCopyHoverBackgrounds() {
 function displayValues() {
     const prevContainerChildren = prevContainer.children;
     const nextContainerChildren = nextContainer.children;
-    
 
     for (let i = 0; i < prevContainerChildren.length; i++)
         prevContainerChildren[i].style.backgroundColor = toggleBackgrounds[currIndex - 1][i];
